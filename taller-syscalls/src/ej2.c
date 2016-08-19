@@ -2,6 +2,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/reg.h>
+#include <syscall.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,7 +15,7 @@ int main(int argc, char* argv[]) {
 		fprintf(stderr, "Uso: %s commando [argumentos ...]\n", argv[0]);
 		exit(1);
 	}
-
+	printf("%i\n", SYS_kill);	
 	/* Fork en dos procesos */
 	child = fork();
 	if (child == -1) { perror("ERROR fork"); return 1; }
@@ -28,15 +29,20 @@ int main(int argc, char* argv[]) {
 		/* Solo se ejecuta en el padre */
 		while(1) {
 			if (wait(&status) < 0) { perror("waitpid"); break; }
-			int sysno = ptrace(PTRACE_PEEKUSER, child, 4*ORIG_EAX, NULL);
-			if (sysno == 62){
-				puts("¡Se ha hecho Justicia!");
-				kill(child, SIGTERM);
-				sleep(1);
-				kill(child, SIGKILL);
-				break;	
+			if(ptrace(PTRACE_PEEKUSER, child, 4 * EAX, NULL) == -ENOSYS){
+				int sysno = ptrace(PTRACE_PEEKUSER, child, 4*ORIG_EAX, NULL);
+				if (sysno == 62){
+					puts("¡Se ha hecho Justicia!");
+					kill(child, SIGTERM);
+					sleep(1);
+					kill(child, SIGKILL);
+					break;	
+				} else {	
+					ptrace(PTRACE_SYSCALL, child, NULL, NULL);
+				}
 			} else {
 				ptrace(PTRACE_SYSCALL, child, NULL, NULL);
+
 			}
 			if (WIFEXITED(status)) {
 				break; /* Proceso terminado */
