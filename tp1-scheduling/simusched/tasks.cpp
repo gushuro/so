@@ -1,6 +1,37 @@
 #include "tasks.h"
+#include <stdlib.h>
+
 
 using namespace std;
+
+void taskConsola(int pid, vector<int> params){
+	int n = params[0];
+	int bmin = params[1];
+	int bmax = params[2];
+	for(int i = 0; i < n; ++i){
+		int r = ((double)rand()/RAND_MAX) * (bmax - bmin) + bmin;
+		uso_IO(pid, r);
+		uso_CPU(pid, 1);
+	}
+}
+
+void taskBatch(int pid, vector<int> params){
+	int totalCpu = params[0];
+	int cantBloqueos = params[1];
+	vector<int> schedule = vector<int>(totalCpu, 0);
+	for (int i = 0; i < totalCpu - cantBloqueos; ++i){
+		schedule[i] = 1;
+	}
+	shuffle(schedule.begin(), schedule.end());	
+	for (int i = 0; i < totalCpu; ++i){
+		if (schedule[i]) {
+			uso_CPU(pid, 1);
+		} else {
+			uso_IO(pid, 2);
+		}
+	}
+}
+
 
 void TaskCPU(int pid, vector<int> params) { // params: n
 	uso_CPU(pid, params[0] - 1); // Uso el CPU n milisegundos.

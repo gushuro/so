@@ -3,5 +3,6 @@
 
 #include "basetask.h"
 void tasks_init(void);
+void taskConsola(int n, int bmin, int bmax);
 
 #endif
