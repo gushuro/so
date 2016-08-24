@@ -3,7 +3,7 @@
 using namespace std;
 
 SchedRSJF::SchedRSJF(vector<int> argn) {
-        // Recibe la cantidad de cores y sus cpu_quantum por parámetro
+        // Recibe por parámetro la cantidad de cores, sus cpu_quantum y los tiempos de ejecución de cada tarea en el lote
 /* llenar */
 }
 

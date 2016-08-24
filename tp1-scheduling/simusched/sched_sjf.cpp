@@ -6,7 +6,7 @@
 using namespace std;
 
 SchedSJF::SchedSJF(vector<int> argn) {
-        // Recibe la cantidad de cores 
+        // Recibe la cantidad de cores y los tiempos de ejecución de cada tarea en el lote
 /* llenar */
 }
 
