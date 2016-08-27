@@ -24,3 +24,11 @@ clean:
 	rm -f $(OBJS) $(MAIN)
 
 new: clean all
+
+ejercicio1:
+	make && ./simusched ej1.tsk 1 1 1 SchedFCFS | python graphsched.py > ej1.png
+
+ejercicio2:
+	make && ./simusched ej2.tsk 1 2 1 SchedFCFS | python graphsched.py > ej2-1core.png && \
+	./simusched ej2.tsk 2 2 1 SchedFCFS | python graphsched.py > ej2-2cores.png && \
+	./simusched ej2.tsk 4 2 1 SchedFCFS | python graphsched.py > ej2-4cores.png
