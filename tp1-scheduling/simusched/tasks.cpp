@@ -4,25 +4,27 @@
 
 using namespace std;
 
-void taskConsola(int pid, vector<int> params){
+void TaskConsola(int pid, vector<int> params){
 	int n = params[0];
 	int bmin = params[1];
 	int bmax = params[2];
+	srand(time(NULL));
 	for(int i = 0; i < n; ++i){
-		int r = ((double)rand()/RAND_MAX) * (bmax - bmin) + bmin;
+		int r = ((double)rand()/RAND_MAX) * (bmax - bmin+1) + bmin;
 		uso_IO(pid, r);
 		uso_CPU(pid, 1);
 	}
 }
 
-void taskBatch(int pid, vector<int> params){
+void TaskBatch(int pid, vector<int> params){
 	int totalCpu = params[0];
 	int cantBloqueos = params[1];
 	vector<int> schedule = vector<int>(totalCpu, 0);
 	for (int i = 0; i < totalCpu - cantBloqueos; ++i){
 		schedule[i] = 1;
 	}
-	random_shuffle(schedule.begin(), schedule.end());	
+	srand(time(NULL));
+	random_shuffle(schedule.begin(), schedule.end());
 	for (int i = 0; i < totalCpu; ++i){
 		if (schedule[i]) {
 			uso_CPU(pid, 1);
@@ -58,4 +60,6 @@ void tasks_init(void) {
 	register_task(TaskCPU, 1);
 	register_task(TaskIO, 2);
 	register_task(TaskAlterno, -1);
+	register_task(TaskConsola, 3);
+	register_task(TaskBatch, 2);
 }
