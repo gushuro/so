@@ -32,3 +32,12 @@ ejercicio2:
 	make && ./simusched lotes/ej2.tsk 1 2 1 SchedFCFS | python graphsched.py > ej2-1core.png && \
 	./simusched lotes/ej2.tsk 2 2 1 SchedFCFS | python graphsched.py > ej2-2cores.png && \
 	./simusched lotes/ej2.tsk 4 2 1 SchedFCFS | python graphsched.py > ej2-4cores.png
+
+ejercicio3:
+
+ejercicio4:
+
+ejercicio5:
+	make && ./simusched lotes/ej2.tsk 1 1 1 SchedRR 2 | python graphsched.py > ej5-quantum2.png && \
+	./simusched lotes/ej2.tsk 1 1 1 SchedRR 5 | python graphsched.py > ej5-quantum5.png && \
+	./simusched lotes/ej2.tsk 1 1 1 SchedRR 10 | python graphsched.py > ej5-quantum10.png
