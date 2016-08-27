@@ -10,8 +10,11 @@ SchedRR::SchedRR(vector<int> argn) {
 	// Round robin recibe la cantidad de cores y sus cpu_quantum por parámetro
 	quantums = vector<int> (argn[0]);
 	ticksleft = vector<int> (argn[0]);
+	cerr << "a0 " << argn[0] << " a1: "<< argn[1] << "   a2: " << argn[2] << endl;
 	for (int i = 0; i < argn[0]; ++i) {
-		quantums[i] = ticksleft[i] = argn[i+1];
+		quantums[i] = ticksleft[i] = argn[i+1]-1;
+
+		cerr << quantums[i] << endl;
 	}
 }
 
@@ -32,6 +35,7 @@ void SchedRR::unblock(int pid) {
 
 int SchedRR::tick(int cpu, const enum Motivo m) {
 /* completar */
+	//cout << "pid: " << current_pid(cpu) << endl;
 	if (m == EXIT){
 		// Si el proceso terminó, lo saco de la cola y sigo.
 		if (q.empty()) return IDLE_TASK;
@@ -44,8 +48,10 @@ int SchedRR::tick(int cpu, const enum Motivo m) {
 	} else if (m == TICK){
 		//Si estaba idle y hay tarea, correla
 		if (current_pid(cpu) == IDLE_TASK && !q.empty()){
+
 			int sig = q.front();
 			q.pop();
+			////cout << "error 1111" << endl;
 			return sig;
 		}
 		// Si hay una tarea corriendo:
@@ -55,6 +61,7 @@ int SchedRR::tick(int cpu, const enum Motivo m) {
 			q.pop();
 			q.push(current_pid(cpu));
 			ticksleft[cpu] = quantums[cpu];
+			//cout << "error 22222" << endl;
 			return sig;
 		} else if (ticksleft[cpu] == 0) {
 			// no le quedan ticks pero la cola está vacía.
@@ -70,7 +77,7 @@ int SchedRR::tick(int cpu, const enum Motivo m) {
 		int sig = q.front();
 		q.pop();
 		ticksleft[cpu] = quantums[cpu];
+		//cout << "error 3333" << endl;
 		return sig;
 	}
-	return 0;
 }
