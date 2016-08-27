@@ -1,6 +1,6 @@
 #include "tasks.h"
 #include <stdlib.h>
-
+#include <algorithm>
 
 using namespace std;
 
@@ -22,7 +22,7 @@ void taskBatch(int pid, vector<int> params){
 	for (int i = 0; i < totalCpu - cantBloqueos; ++i){
 		schedule[i] = 1;
 	}
-	shuffle(schedule.begin(), schedule.end());	
+	random_shuffle(schedule.begin(), schedule.end());	
 	for (int i = 0; i < totalCpu; ++i){
 		if (schedule[i]) {
 			uso_CPU(pid, 1);
