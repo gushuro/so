@@ -8,7 +8,7 @@
 class SchedFCFS : public SchedBase {
 	public:
 		SchedFCFS(std::vector<int> argn);
-        ~SchedFCFS();
+		~SchedFCFS();
 		virtual void load(int pid);
 		virtual void unblock(int pid);
 		virtual int tick(int cpu, const enum Motivo m);
