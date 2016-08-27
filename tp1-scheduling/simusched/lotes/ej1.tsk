@@ -1,5 +1,7 @@
-TaskConsola 5 1 4
-TaskConsola 7 1 2
-@10:
+TaskConsola 3 1 4
+@15:
+TaskConsola 4 1 6
+@20:
 TaskConsola 1 1 1
+@22:
 TaskConsola 3 3 7
