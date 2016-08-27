@@ -1,0 +1,6 @@
+TaskCPU 200
+@15:
+TaskCPU 50
+@25:
+TaskCPU 60
+
