@@ -26,8 +26,14 @@ SchedSJF::~SchedSJF() {
 
 void SchedSJF::load(int pid) {
 /* llenar */
-	proc p ={pid,timeleft[pid]};
+	proc p;
+	p.pid = pid;
+	p.time = timeleft[pid];
 	q.push(p);
+	DBG(q.top().pid);
+	DBG(pid);
+	DBG(timeleft[pid]);
+
 }
 
 void SchedSJF::unblock(int pid) {
