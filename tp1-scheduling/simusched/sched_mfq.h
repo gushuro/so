@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <queue>
+#include <unordered_map>
+
 #include "basesched.h"
 
 using namespace std;
@@ -20,7 +22,7 @@ class SchedMFQ : public SchedBase {
 		vector<queue<int> > vq;		// los pid de los procesos en ready.
 		vector<int> quantums;		// los quantums de cada respectiva cola
 		vector<int> ticksleft;		// cuantos ticks le restan al proceso en cada core
-		vector<int> lastqueue;		// la última cola en la que estuvo cada proceso
+		unordered_map<int,int> lastqueue;	// la última cola en la que estuvo cada proceso
 
 };
 
