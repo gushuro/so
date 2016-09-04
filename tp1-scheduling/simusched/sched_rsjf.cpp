@@ -12,6 +12,8 @@ SchedRSJF::SchedRSJF(vector<int> argn) {
 	timeleft = vector<int> (argn.size()-1-argn[0]);
 	for (int i = 0; i < argn[0]; ++i) {
 		quantums[i] = ticksleft[i] = argn[i+1]-1;
+		//DBG(quantums[i]);
+		//DBG(ticksleft[i])
 	}
 	for (int i = 0; i < argn.size()-1-argn[0]; ++i) {
 		timeleft[i] = argn[i+argn[0]+1];
@@ -59,7 +61,11 @@ int SchedRSJF::tick(int core, const enum Motivo m) {
 			p.pid = current_pid(core);
 			p.time = timeleft[current_pid(core)];
 			q.push(p);
+			//DBG(p.pid);
+			//DBG(p.time);
 			int sig = q.top().pid;
+			//DBG(q.top().pid);
+			//DBG(q.top().time);
 			q.pop();
 			ticksleft[core] = quantums[core];
 			return sig;
