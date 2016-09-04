@@ -5,6 +5,7 @@
 #include <queue>
 #include <algorithm>
 #include "basesched.h"
+#include <iostream>
 
 using namespace std;
 
@@ -17,12 +18,13 @@ class SchedRSJF : public SchedBase {
 		virtual void unblock(int pid);
 		virtual int tick(int cpu, const enum Motivo m);	
 	private:
-/* llenar */
+
+	// struct para el heap, contiene el orden (time) y el pid
 	struct proc {
 		int pid;
 		int time;
 	};
-	vector<int> timeleft;
+	vector<int> timeleft; // tiempo que le queda a cada proceso
 	struct comp{
 		bool operator()(proc i, proc j){
 			return i.time > j.time;

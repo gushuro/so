@@ -3,17 +3,13 @@
 
 using namespace std;
 
-#define DBG(x) cerr << #x << " = " << (x) << endl;
-
 SchedRSJF::SchedRSJF(vector<int> argn) {
         // Recibe por parámetro la cantidad de cores, sus cpu_quantum y los tiempos de ejecución de cada tarea en el lote
-	quantums = vector<int> (argn[0]);
-	ticksleft = vector<int> (argn[0]);
-	timeleft = vector<int> (argn.size()-1-argn[0]);
+	quantums = vector<int> (argn[0]); // quantums por core
+	ticksleft = vector<int> (argn[0]); // ticks que le quedan al proceso en ese core
+	timeleft = vector<int> (argn.size()-1-argn[0]);  // tiempo que le queda al proceso en total
 	for (int i = 0; i < argn[0]; ++i) {
 		quantums[i] = ticksleft[i] = argn[i+1]-1;
-		//DBG(quantums[i]);
-		//DBG(ticksleft[i])
 	}
 	for (int i = 0; i < argn.size()-1-argn[0]; ++i) {
 		timeleft[i] = argn[i+argn[0]+1];
@@ -56,16 +52,12 @@ int SchedRSJF::tick(int core, const enum Motivo m) {
 		}
 		// Si hay una tarea corriendo:
 		if (ticksleft[core] == 0 && !q.empty()) {
-			// si no le quedan ticks y hay otra esperando, al fondo.
+			// si no le quedan ticks, lo meto en la cola y saco el minimo (puede ser el mismo).
 			proc p;
 			p.pid = current_pid(core);
-			p.time = timeleft[current_pid(core)];
+			p.time = --timeleft[current_pid(core)];
 			q.push(p);
-			//DBG(p.pid);
-			//DBG(p.time);
 			int sig = q.top().pid;
-			//DBG(q.top().pid);
-			//DBG(q.top().time);
 			q.pop();
 			ticksleft[core] = quantums[core];
 			return sig;
