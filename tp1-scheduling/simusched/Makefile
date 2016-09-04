@@ -34,6 +34,8 @@ ejercicio2:
 	./simusched lotes/ej2.tsk 4 2 1 SchedFCFS | python graphsched.py > diagramas/ej2-4cores.png
 
 ejercicio3:
+	make && ./simusched lotes/ej3.tsk 1 2 1 SchedFCFS | python graphsched.py > diagramas/ej3-1core.png && \
+	./simusched lotes/ej3.tsk 2 2 1 SchedFCFS | python graphsched.py > diagramas/ej3-2cores.png
 
 ejercicio4:
 
