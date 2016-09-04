@@ -1,6 +1,7 @@
 #include <vector>
 #include <queue>
 #include <iostream>
+#include <unordered_map>
 #include "sched_mfq.h"
 #include "basesched.h"
 
@@ -14,10 +15,11 @@ SchedMFQ::SchedMFQ(vector<int> argn) {
 	int n = argn.size()-1;		// cantidad de colas
 	ticksleft = vector<int> (cores, 0);		// ticks restantes en cada core
 	vq = vector<queue<int> > (n, queue<int>() );	// vector de n colas, todas vacías
-	quantums = vector<int> (n);				//
+	quantums = vector<int> (n);				// los qi
+	lastqueue = unordered_map<int,int>();
 	//cerr << "a0 " << argn[0] << " a1: "<< argn[1] << "   a2: " << argn[2] << endl;
-	for (int i = 0; i < argn[0]; ++i) {
-		quantums[i] = ticksleft[i] = argn[i+1]-1;
+	for (int i = 0; i < n; ++i) {
+		quantums[i] = argn[i+1];
 
 		//cerr << quantums[i] << endl;
 	}
