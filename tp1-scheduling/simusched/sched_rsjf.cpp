@@ -11,7 +11,7 @@ SchedRSJF::SchedRSJF(vector<int> argn) {
 	for (int i = 0; i < argn[0]; ++i) {
 		quantums[i] = ticksleft[i] = argn[i+1]-1;
 	}
-	for (int i = 0; i < argn.size()-1-argn[0]; ++i) {
+	for (unsigned int i = 0; i < argn.size()-1-argn[0]; ++i) {
 		timeleft[i] = argn[i+argn[0]+1];
 	}
 }

@@ -11,7 +11,7 @@ SchedSJF::SchedSJF(vector<int> argn) {
 /* llenar */
 	timeleft = vector<int> (argn.size()-1);
 	//cerr << "a0 " << argn[0] << " a1: "<< argn[1] << "   a2: " << argn[2] << endl;
-	for (int i = 0; i < argn.size()-1; ++i) {
+	for (unsigned int i = 0; i < argn.size()-1; ++i) {
 		timeleft[i] = argn[i+1];
 	}
 }
