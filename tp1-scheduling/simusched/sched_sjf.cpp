@@ -4,10 +4,20 @@
 #include "sched_sjf.h"
 
 using namespace std;
+#define DBG(x) cerr << #x << " = " << (x) << endl
 
 SchedSJF::SchedSJF(vector<int> argn) {
-        // Recibe la cantidad de cores y los tiempos de ejecución de cada tarea en el lote
+		// Recibe la cantidad de cores y los tiempos de ejecución de cada tarea en el lote
 /* llenar */
+	timeleft = vector<int> (argn.size()-1);
+	//cerr << "a0 " << argn[0] << " a1: "<< argn[1] << "   a2: " << argn[2] << endl;
+	for (int i = 0; i < argn.size()-1; ++i) {
+		timeleft[i] = argn[i+1];
+		DBG(i);
+		DBG(timeleft[i]);
+
+		//cerr << quantums[i] << endl;
+	}
 }
 
 SchedSJF::~SchedSJF() {
@@ -16,6 +26,8 @@ SchedSJF::~SchedSJF() {
 
 void SchedSJF::load(int pid) {
 /* llenar */
+	proc p ={pid,timeleft[pid]};
+	q.push(p);
 }
 
 void SchedSJF::unblock(int pid) {
@@ -24,5 +36,22 @@ void SchedSJF::unblock(int pid) {
 
 int SchedSJF::tick(int cpu, const enum Motivo m) {
 /* llenar */
+	if (m == EXIT) {
+		// Si el pid actual terminó, sigue el próximo.
+		if (q.empty()) return IDLE_TASK;
+		else {
+			int sig = q.top().pid; q.pop();
+			DBG(sig);
+			return sig;
+		}
+	} else {
+		// Siempre sigue el pid actual mientras no termine.
+		if (current_pid(cpu) == IDLE_TASK && !q.empty()) {
+			int sig = q.top().pid; q.pop();
+			return sig;
+		} else {
+			return current_pid(cpu);
+		}
+	}
 	return 0;
 }
