@@ -43,5 +43,5 @@ ejercicio5:
 	./simusched lotes/ej2.tsk 1 1 1 SchedRR 10 | python graphsched.py > diagramas/ej5-quantum10.png
 
 ejercicio7:
-	make && ./simusched lotes/ejsjf.tsk 1 1 1 SchedSJF 1 7 5 3 9 10 2 | python graphsched.py > diagramas/ej7sjf.png
+	make && ./simusched lotes/ej7sjf.tsk 1 1 1 SchedSJF 1 7 5 3 9 10 2 | python graphsched.py > diagramas/ej7sjf.png
 
