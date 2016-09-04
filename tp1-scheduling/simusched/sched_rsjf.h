@@ -18,7 +18,20 @@ class SchedRSJF : public SchedBase {
 		virtual int tick(int cpu, const enum Motivo m);	
 	private:
 /* llenar */
-	
+	struct proc {
+		int pid;
+		int time;
+	};
+	vector<int> timeleft;
+	struct comp{
+		bool operator()(proc i, proc j){
+			return i.time > j.time;
+		}
+	};
+	priority_queue<proc, vector<proc>, comp> q;
+	vector<int> quantums;	// los quantums de cada respectivo core
+	vector<int> ticksleft;	// cuantos ticks le restan al proceso en cada core
+
 };
 
 #endif

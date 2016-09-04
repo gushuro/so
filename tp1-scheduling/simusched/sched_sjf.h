@@ -29,7 +29,6 @@ class SchedSJF : public SchedBase {
 			}
 		};
 		priority_queue<proc, vector<proc>, comp> q;
-		int cores;
 };
 
 #endif
