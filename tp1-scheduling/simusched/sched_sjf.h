@@ -25,7 +25,6 @@ class SchedSJF : public SchedBase {
 		vector<int> timeleft;
 		struct comp{
 			bool operator()(proc i, proc j){
-				cerr << "holis" << endl;
 				return i.time > j.time;
 			}
 		};

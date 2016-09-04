@@ -13,10 +13,6 @@ SchedSJF::SchedSJF(vector<int> argn) {
 	//cerr << "a0 " << argn[0] << " a1: "<< argn[1] << "   a2: " << argn[2] << endl;
 	for (int i = 0; i < argn.size()-1; ++i) {
 		timeleft[i] = argn[i+1];
-		DBG(i);
-		DBG(timeleft[i]);
-
-		//cerr << quantums[i] << endl;
 	}
 }
 
@@ -30,10 +26,6 @@ void SchedSJF::load(int pid) {
 	p.pid = pid;
 	p.time = timeleft[pid];
 	q.push(p);
-	DBG(q.top().pid);
-	DBG(pid);
-	DBG(timeleft[pid]);
-
 }
 
 void SchedSJF::unblock(int pid) {
@@ -47,7 +39,6 @@ int SchedSJF::tick(int cpu, const enum Motivo m) {
 		if (q.empty()) return IDLE_TASK;
 		else {
 			int sig = q.top().pid; q.pop();
-			DBG(sig);
 			return sig;
 		}
 	} else {
