@@ -10,11 +10,11 @@ SchedRR::SchedRR(vector<int> argn) {
 	// Round robin recibe la cantidad de cores y sus cpu_quantum por parámetro
 	quantums = vector<int> (argn[0]);
 	ticksleft = vector<int> (argn[0]);
-	cerr << "a0 " << argn[0] << " a1: "<< argn[1] << "   a2: " << argn[2] << endl;
+	//cerr << "a0 " << argn[0] << " a1: "<< argn[1] << "   a2: " << argn[2] << endl;
 	for (int i = 0; i < argn[0]; ++i) {
 		quantums[i] = ticksleft[i] = argn[i+1]-1;
 
-		cerr << quantums[i] << endl;
+		//cerr << quantums[i] << endl;
 	}
 }
 
