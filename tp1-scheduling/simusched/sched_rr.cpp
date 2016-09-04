@@ -28,9 +28,10 @@ void SchedRR::unblock(int pid) {
 
 int SchedRR::tick(int cpu, const enum Motivo m) {
 	if (m == EXIT){
-		// Si el proceso terminó, lo saco de la cola y sigo.
-		if (q.empty()) return IDLE_TASK;
+		// Si el anterior proceso terminó, reviso si hay alguna esperando para ejecutar
+		if (q.empty()) return IDLE_TASK; // si no hay ninguna, ejecuto IDLE
 		else{
+			// Si hay alguna otra, hay que popearla y ejecutarla
 			int sig = q.front(); q.pop();
 			ticksleft[cpu] = quantums[cpu];
 			return sig;
