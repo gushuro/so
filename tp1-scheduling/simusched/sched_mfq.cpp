@@ -33,63 +33,53 @@ SchedMFQ::~SchedMFQ() {
 }
 
 void SchedMFQ::load(int pid) {
-	pair<int,int> p(pid,0);
-	lastqueue.insert(p);
+	lastqueue[pid] = 0;
 	vq[0].push(pid);
 }
 
 void SchedMFQ::unblock(int pid) {
-/* llenar */
 	int where = max(lastqueue[pid]-1,0);
 	vq[where].push(pid);
 }
 
 int SchedMFQ::tick(int core, const enum Motivo m) {
-/* llenar */
 	if (m == EXIT){
 		// Si el proceso termino, lo saco de la cola y sigo.
-		cerr << "exited process " << current_pid(core) << endl;
-		return next(core, true);
+		return next(core);
 	} else if (m == TICK) {
-
 		// Si estoy en idle, dame el siguiente y actualiza:
 		if (current_pid(core) == IDLE_TASK){
-			return next(core,true);
-		}
-
-		// Si hay una tarea corriendo:
-		if (ticksleft[core] == 0){
+			return next(core);
+		} else if (ticksleft[core] == 0){
+				// Si hay una tarea corriendo:
 			int act = current_pid(core);
-			int where = min(lastqueue[act]+1, (int)vq.size());
+			int where = min(lastqueue[act]+1, (int)(vq.size()-1));
 			vq[where].push(act);	// Agoto sus ticks, para abajo.
-			return next(core, true);
+			return next(core);
 		} else{
 			ticksleft[core]--;
 			return current_pid(core);
 		}
 	} else {
 		// BLOCK: Desalojo y meto al siguiente.
-		return next(core, true);
+		return next(core);
 	}
+	//cerr << "TODO MAL" << endl;
 	return 0;
 }
 
 
-int SchedMFQ::next(int core, bool update){
-	// Me da el proximo pid. Si update es true, lo saca de su cola y actualiza ticksleft y lastqueue
+int SchedMFQ::next(int core){
+	// Me da el proximo pid. Lo saca de su cola y actualiza ticksleft y lastqueue
 	for(int i = 0; i < (int)(vq.size()); i++){
 		if (!(vq[i].empty())) {
 			int res = vq[i].front();
-			if (update) {
-				vq[i].pop();
-				ticksleft[core] = quantums[i];
-				lastqueue[res] = i;
-			}
-			DBG(res);
+			vq[i].pop();
+			ticksleft[core] = quantums[i]-1;
+			lastqueue[res] = i;
 			return res;
 		}
 	}
-	//DBG(IDLE_TASK);
 	return IDLE_TASK;
 }
 
