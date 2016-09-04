@@ -1,14 +1,20 @@
 #include "sched_rsjf.h"
+#include <iostream>
 
 using namespace std;
 
+#define DBG(x) cerr << #x << " = " << (x) << endl;
+
 SchedRSJF::SchedRSJF(vector<int> argn) {
         // Recibe por parámetro la cantidad de cores, sus cpu_quantum y los tiempos de ejecución de cada tarea en el lote
-/* llenar */
 	quantums = vector<int> (argn[0]);
 	ticksleft = vector<int> (argn[0]);
+	timeleft = vector<int> (argn.size()-1-argn[0]);
 	for (int i = 0; i < argn[0]; ++i) {
-		quantums[i] = argn[i+1];
+		quantums[i] = ticksleft[i] = argn[i+1]-1;
+	}
+	for (int i = 0; i < argn.size()-1-argn[0]; ++i) {
+		timeleft[i] = argn[i+argn[0]+1];
 	}
 }
 
@@ -49,12 +55,12 @@ int SchedRSJF::tick(int core, const enum Motivo m) {
 		// Si hay una tarea corriendo:
 		if (ticksleft[core] == 0 && !q.empty()) {
 			// si no le quedan ticks y hay otra esperando, al fondo.
-			int sig = q.top().pid;
-			q.pop();
 			proc p;
 			p.pid = current_pid(core);
-			p.time = timeleft[current_pid(core)]-quantums[core];
+			p.time = timeleft[current_pid(core)];
 			q.push(p);
+			int sig = q.top().pid;
+			q.pop();
 			ticksleft[core] = quantums[core];
 			return sig;
 		} else if (ticksleft[core] == 0) {
@@ -63,6 +69,7 @@ int SchedRSJF::tick(int core, const enum Motivo m) {
 		} else {
 			// le quedan ticks: descuento 1 y sigue el mismo.
 			ticksleft[core]--;
+			timeleft[current_pid(core)]--;
 			return current_pid(core);
 		}
 	} else {
