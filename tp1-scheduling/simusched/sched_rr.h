@@ -17,7 +17,6 @@ class SchedRR : public SchedBase {
 		virtual void unblock(int pid);
 		virtual int tick(int cpu, const enum Motivo m);
 	private:
-/* llenar */
 		queue<int> q;			// los pid de los procesos en ready.
 		vector<int> quantums;	// los quantums de cada respectivo core
 		vector<int> ticksleft;	// cuantos ticks le restan al proceso en cada core
