@@ -17,7 +17,6 @@ SchedRSJF::SchedRSJF(vector<int> argn) {
 }
 
 SchedRSJF::~SchedRSJF() {
-/* llenar */
 }
 
 void SchedRSJF::load(int pid) {
@@ -28,11 +27,9 @@ void SchedRSJF::load(int pid) {
 }
 
 void SchedRSJF::unblock(int pid) {
-/* llenar */
 }
 
 int SchedRSJF::tick(int core, const enum Motivo m) {
-/* llenar */
 	if (m == EXIT){
 		// Si el proceso terminó, lo saco de la cola y sigo.
 		if (q.empty()) return IDLE_TASK;
@@ -42,7 +39,7 @@ int SchedRSJF::tick(int core, const enum Motivo m) {
 			return sig;
 		}
 
-	} else if (m == TICK){
+	} else {
 		//Si estaba idle y hay tarea, correla
 		if (current_pid(core) == IDLE_TASK && !q.empty()){
 
@@ -70,13 +67,5 @@ int SchedRSJF::tick(int core, const enum Motivo m) {
 			timeleft[current_pid(core)]--;
 			return current_pid(core);
 		}
-	} else {
-		// block
-		if (q.empty()) return IDLE_TASK;	// si no hay más tareas, IDLE.
-		int sig = q.top().pid;
-		q.pop();
-		ticksleft[core] = quantums[core];
-		//cout << "error 3333" << endl;
-		return sig;
-	}
+	} 
 }
