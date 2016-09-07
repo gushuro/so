@@ -18,7 +18,6 @@ SchedRSJF::SchedRSJF(vector<int> argn) {
 }
 
 SchedRSJF::~SchedRSJF() {
-	cerr << "BORRASTE MAN" << endl << endl;
 }
 
 void SchedRSJF::load(int pid) {
@@ -38,17 +37,14 @@ int SchedRSJF::tick(int core, const enum Motivo m) {
 		else{
 			int sig = q.top().pid; q.pop();
 			ticksleft[core] = quantums[core];
-			DBG(sig);
 			return sig;
 		}
 
 	} else {
 		//Si estaba idle y hay tarea, correla
 		if (current_pid(core) == IDLE_TASK && !q.empty()){
-			cerr << q.top().pid << endl;
 			int sig = q.top().pid;
 			q.pop();
-			DBG(sig);
 			return sig;
 		} else if (current_pid(core) == IDLE_TASK) {
 			return IDLE_TASK;
@@ -63,7 +59,6 @@ int SchedRSJF::tick(int core, const enum Motivo m) {
 			int sig = q.top().pid;
 			q.pop();
 			ticksleft[core] = quantums[core];
-			DBG(sig);
 			return sig;
 		} else if (ticksleft[core] == 0) {
 			// no le quedan ticks pero la cola está vacía.
@@ -72,9 +67,7 @@ int SchedRSJF::tick(int core, const enum Motivo m) {
 			// le quedan ticks: descuento 1 y sigue el mismo.
 			ticksleft[core]--;
 			timeleft[current_pid(core)]--;
-			DBG(current_pid(core));
 			return current_pid(core);
 		}
 	}
-	cerr << "TODO  MAL GUACHO" << endl;
 }
