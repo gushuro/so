@@ -49,3 +49,12 @@ ejercicio7:
 	make && ./simusched lotes/ej7sjf.tsk 1 1 1 SchedSJF 10 1 7 5 3 9 2 | python graphsched.py > diagramas/ej7-sjf.png && \
 	./simusched lotes/ej7rsjf.tsk 1 1 1 SchedRSJF 3 1 7 5 6 2 2 | python graphsched.py > diagramas/ej7-rsjf.png
 
+ejercicio8:
+	make && ./simusched lotes/ej8-cpulargomuchoschicos.tsk 1 1 1 SchedRR 3 | python graphsched.py > diagramas/ej8-cpulargomuchoschicosRR.png && \
+	./simusched lotes/ej8-cpulargomuchoschicos.tsk 1 1 1 SchedSJF 15 2 2 3 4 2 | python graphsched.py > diagramas/ej8-cpulargomuchoschicosSJF.png && \
+	./simusched lotes/ej8-cpulargomuchoschicos.tsk 1 1 1 SchedRSJF 3 15 2 2 3 4 2 | python graphsched.py > diagramas/ej8-cpulargomuchoschicosRSJF.png && \
+	./simusched lotes/ej8-cpulargomuchoschicos.tsk 1 1 1 SchedFCFS | python graphsched.py > diagramas/ej8-cpulargomuchoschicosFCFS.png && \
+	./simusched lotes/ej8-10tareasduran5.tsk 1 1 1 SchedRR 3 | python graphsched.py > diagramas/ej8-10tareasduran5RR.png && \
+	./simusched lotes/ej8-10tareasduran5.tsk 1 1 1 SchedSJF 15 2 2 3 4 2 | python graphsched.py > diagramas/ej8-10tareasduran5SJF.png && \
+	./simusched lotes/ej8-10tareasduran5.tsk 1 1 1 SchedRSJF 3 15 2 2 3 4 2 | python graphsched.py > diagramas/ej8-10tareasduran5RSJF.png && \
+	./simusched lotes/ej8-10tareasduran5.tsk 1 1 1 SchedFCFS | python graphsched.py > diagramas/ej8-10tareasduran5FCFS.png
