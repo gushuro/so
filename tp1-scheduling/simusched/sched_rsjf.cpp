@@ -2,6 +2,7 @@
 #include <iostream>
 
 using namespace std;
+#define DBG(x) cerr << #x << " = " << (x) << endl
 
 SchedRSJF::SchedRSJF(vector<int> argn) {
         // Recibe por parámetro la cantidad de cores, sus cpu_quantum y los tiempos de ejecución de cada tarea en el lote
@@ -17,12 +18,13 @@ SchedRSJF::SchedRSJF(vector<int> argn) {
 }
 
 SchedRSJF::~SchedRSJF() {
+	cerr << "BORRASTE MAN" << endl << endl;
 }
 
 void SchedRSJF::load(int pid) {
 	proc p;
 	p.pid = pid;
-	p.time = timeleft[pid];
+	p.time = 2; //timeleft[pid];
 	q.push(p);
 }
 
@@ -36,16 +38,20 @@ int SchedRSJF::tick(int core, const enum Motivo m) {
 		else{
 			int sig = q.top().pid; q.pop();
 			ticksleft[core] = quantums[core];
+			DBG(sig);
 			return sig;
 		}
 
 	} else {
 		//Si estaba idle y hay tarea, correla
 		if (current_pid(core) == IDLE_TASK && !q.empty()){
-
+			cerr << q.top().pid << endl;
 			int sig = q.top().pid;
 			q.pop();
+			DBG(sig);
 			return sig;
+		} else if (current_pid(core) == IDLE_TASK) {
+			return IDLE_TASK;
 		}
 		// Si hay una tarea corriendo:
 		if (ticksleft[core] == 0 && !q.empty()) {
@@ -57,6 +63,7 @@ int SchedRSJF::tick(int core, const enum Motivo m) {
 			int sig = q.top().pid;
 			q.pop();
 			ticksleft[core] = quantums[core];
+			DBG(sig);
 			return sig;
 		} else if (ticksleft[core] == 0) {
 			// no le quedan ticks pero la cola está vacía.
@@ -65,7 +72,9 @@ int SchedRSJF::tick(int core, const enum Motivo m) {
 			// le quedan ticks: descuento 1 y sigue el mismo.
 			ticksleft[core]--;
 			timeleft[current_pid(core)]--;
+			DBG(current_pid(core));
 			return current_pid(core);
 		}
-	} 
+	}
+	cerr << "TODO  MAL GUACHO" << endl;
 }
