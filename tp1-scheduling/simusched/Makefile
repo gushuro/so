@@ -58,3 +58,7 @@ ejercicio8:
 	./simusched lotes/ej8-10tareasduran5.tsk 1 1 1 SchedSJF 15 2 2 3 4 2 | python graphsched.py > diagramas/ej8-10tareasduran5SJF.png && \
 	./simusched lotes/ej8-10tareasduran5.tsk 1 1 1 SchedRSJF 3 15 2 2 3 4 2 | python graphsched.py > diagramas/ej8-10tareasduran5RSJF.png && \
 	./simusched lotes/ej8-10tareasduran5.tsk 1 1 1 SchedFCFS | python graphsched.py > diagramas/ej8-10tareasduran5FCFS.png
+	./simusched lotes/ej8-contextocaro.tsk 1 5 1 SchedFCFS | python graphsched.py > diagramas/contextocaroFCFS.png && \
+	./simusched lotes/ej8-contextocaro.tsk 1 5 1 SchedSJF 8 8 8 | python graphsched.py > diagramas/contextocaroSJF.png && \
+	./simusched lotes/ej8-contextocaro.tsk 1 5 1 SchedRR 3 | python graphsched.py > diagramas/contextocaroRR.png && \
+	./simusched lotes/ej8-contextocaro.tsk 1 5 1 SchedRSJF 3 8 8 8 | python graphsched.py > diagramas/contextocaroRSJF.png
