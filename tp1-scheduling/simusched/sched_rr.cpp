@@ -45,6 +45,9 @@ int SchedRR::tick(int cpu, const enum Motivo m) {
 			q.pop();
 			return sig;
 		}
+		if (current_pid(cpu) == IDLE_TASK){
+			return IDLE_TASK;
+		}
 		// Si hay una tarea corriendo:
 		if (ticksleft[cpu] == 0 && !q.empty()) {
 			// si no le quedan ticks y hay otra esperando, al fondo.

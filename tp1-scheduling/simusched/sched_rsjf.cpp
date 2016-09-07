@@ -23,7 +23,7 @@ SchedRSJF::~SchedRSJF() {
 void SchedRSJF::load(int pid) {
 	proc p;
 	p.pid = pid;
-	p.time = 2; //timeleft[pid];
+	p.time = timeleft[pid];
 	q.push(p);
 }
 
