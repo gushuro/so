@@ -68,11 +68,8 @@ ejercicio8:
 	./simusched lotes/ej8-10tareasduran5.tsk 2 1 5 SchedRR 3 3 3 | python graphsched.py > diagramas/ej8-2cores-tareasimpares-cambiocaroRR.png && \
 	./simusched lotes/ej8-10tareasduran5.tsk 2 1 5 SchedSJF 5 5 5 5 5 | python graphsched.py > diagramas/ej8-2cores-tareasimpares-cambiocaroSJF.png && \
 	./simusched lotes/ej8-10tareasduran5.tsk 2 1 5 SchedSJF 5 5 5 5 5 | python graphsched.py > diagramas/ej8-2cores-tareasimpares-cambiocaroSJF.png && \
-	./simusched lotes/ej8-10tareasduran5.tsk 2 1 5 SchedRSJF 3 3 5 5 5 5 5 | python graphsched.py > diagramas/ej8-2cores-tareasimpares-cambiocaroRSJF.png && \
-	./simusched lotes/ej8-bloqueantes.tsk 2 1 5 SchedRR 3 3 3 | python graphsched.py > diagramas/ej8-2cores-tareasimpares-cambiocaroRR.png && \
-	./simusched lotes/ej8-bloqueantes.tsk 2 1 5 SchedSJF 5 5 5 5 5 | python graphsched.py > diagramas/ej8-2cores-tareasimpares-cambiocaroSJF.png && \
-	./simusched lotes/ej8-bloqueantes.tsk 2 1 5 SchedSJF 5 5 5 5 5 | python graphsched.py > diagramas/ej8-2cores-tareasimpares-cambiocaroSJF.png && \
-	./simusched lotes/ej8-bloqueantes.tsk 2 1 5 SchedRSJF 3 3 5 5 5 5 5 | python graphsched.py > diagramas/ej8-2cores-tareasimpares-cambiocaroRSJF.png
+	./simusched lotes/ej8-10tareasduran5.tsk 2 1 5 SchedRSJF 3 3 5 5 5 5 5 | python graphsched.py > diagramas/ej8-2cores-tareasimpares-cambiocaroRSJF.png
+
 
 
 
