@@ -45,7 +45,7 @@ ejercicio5:
 	./simusched lotes/ej2.tsk 1 2 1 SchedRR 5 | python graphsched.py > diagramas/ej5-quantum5.png && \
 	./simusched lotes/ej2.tsk 1 2 1 SchedRR 10 | python graphsched.py > diagramas/ej5-quantum10.png
 
-ejercicio7:	
+ejercicio7:
 	make && ./simusched lotes/ej7sjf.tsk 1 1 1 SchedSJF 10 1 7 5 3 9 2 | python graphsched.py > diagramas/ej7-sjf.png && \
 	./simusched lotes/ej7rsjf.tsk 1 1 1 SchedRSJF 3 1 7 5 6 2 2 | python graphsched.py > diagramas/ej7-rsjf.png
 
@@ -62,3 +62,10 @@ ejercicio8:
 	./simusched lotes/ej8-contextocaro.tsk 1 5 1 SchedSJF 8 8 8 | python graphsched.py > diagramas/contextocaroSJF.png && \
 	./simusched lotes/ej8-contextocaro.tsk 1 5 1 SchedRR 3 | python graphsched.py > diagramas/contextocaroRR.png && \
 	./simusched lotes/ej8-contextocaro.tsk 1 5 1 SchedRSJF 3 8 8 8 | python graphsched.py > diagramas/contextocaroRSJF.png
+
+
+ejercicio9:
+	make && ./simusched lotes/ej9-exploit.tsk 1 1 1 SchedMFQ 3 3 | python graphsched.py > diagramas/ej9-exploit.png && \
+	./simusched lotes/ej9-2.tsk 1 1 1 SchedMFQ 4 | python graphsched.py > diagramas/ej9-2a.png && \
+	./simusched lotes/ej9-2.tsk 1 1 1 SchedMFQ 4 3 2 1 | python graphsched.py > diagramas/ej9-2b.png && \
+	echo "hola"

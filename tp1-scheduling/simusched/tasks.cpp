@@ -9,7 +9,7 @@ void TaskConsola(int pid, vector<int> params){
 	int bmin = params[1];
 	int bmax = params[2];
 	//srand(time(NULL));
-	srand(314);
+	srand(pid);
 	for(int i = 0; i < n; ++i){
 		int r = ((double)rand()/RAND_MAX) * (bmax - bmin+1) + bmin;
 		uso_IO(pid, r);
@@ -24,7 +24,7 @@ void TaskBatch(int pid, vector<int> params){
 	for (int i = 0; i < totalCpu - cantBloqueos; ++i){
 		schedule[i] = 1;
 	}
-	srand(time(NULL));
+	srand(314+pid);
 	//srand(314);
 	random_shuffle(schedule.begin(), schedule.end());
 	for (int i = 0; i < totalCpu; ++i){
