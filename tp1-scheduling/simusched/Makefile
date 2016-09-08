@@ -66,7 +66,7 @@ ejercicio8:
 	./simusched lotes/ej8-contextocaro.tsk 1 5 1 SchedRR 3 | python graphsched.py > diagramas/contextocaroRR.png && \
 	./simusched lotes/ej8-contextocaro.tsk 1 5 1 SchedRSJF 3 8 8 8 | python graphsched.py > diagramas/contextocaroRSJF.png && \
 	./simusched lotes/ej8-10tareasduran5.tsk 2 1 5 SchedRR 3 3 3 | python graphsched.py > diagramas/ej8-2cores-tareasimpares-cambiocaroRR.png && \
-	./simusched lotes/ej8-10tareasduran5.tsk 2 1 5 SchedSJF 5 5 5 5 5 | python graphsched.py > diagramas/ej8-2cores-tareasimpares-cambiocaroSJF.png && \
+	./simusched lotes/ej8-10tareasduran5.tsk 2 1 5 SchedFCFS | python graphsched.py > diagramas/ej8-2cores-tareasimpares-cambiocaroFCFS.png && \
 	./simusched lotes/ej8-10tareasduran5.tsk 2 1 5 SchedSJF 5 5 5 5 5 | python graphsched.py > diagramas/ej8-2cores-tareasimpares-cambiocaroSJF.png && \
 	./simusched lotes/ej8-10tareasduran5.tsk 2 1 5 SchedRSJF 3 3 5 5 5 5 5 | python graphsched.py > diagramas/ej8-2cores-tareasimpares-cambiocaroRSJF.png
 
