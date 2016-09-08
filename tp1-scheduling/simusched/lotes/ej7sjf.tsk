@@ -1,10 +1,10 @@
 @0:
 TaskCPU 10
+TaskCPU 9
 @2:
 TaskCPU 1
 TaskCPU 7
 TaskCPU 5
 TaskCPU 3
-TaskCPU 9
 @16:
 TaskCPU 2

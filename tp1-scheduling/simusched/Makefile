@@ -49,7 +49,7 @@ ejercicio6:
 	echo "\n"
 
 ejercicio7:
-	make && ./simusched lotes/ej7sjf.tsk 1 1 1 SchedSJF 10 1 7 5 3 9 2 | python graphsched.py > diagramas/ej7-sjf.png && \
+	make && ./simusched lotes/ej7sjf.tsk 1 1 1 SchedSJF 10 9 1 7 5 3 2 | python graphsched.py > diagramas/ej7-sjf.png && \
 	./simusched lotes/ej7rsjf.tsk 1 1 1 SchedRSJF 3 1 7 5 6 2 2 | python graphsched.py > diagramas/ej7-rsjf.png
 
 ejercicio8:
