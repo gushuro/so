@@ -29,7 +29,7 @@ ejercicio1:
 	make && ./simusched lotes/ej1.tsk 1 1 1 SchedFCFS | python graphsched.py > diagramas/ej1.png
 
 ejercicio2:
-	make && ./simusched lotes/ej2.tsk 1 2 1 SchedFCFS | python graphsched.py > ej2-1core.png && \
+	make && ./simusched lotes/ej2.tsk 1 2 1 SchedFCFS | python graphsched.py > diagramas/ej2-1core.png && \
 	./simusched lotes/ej2.tsk 2 2 1 SchedFCFS | python graphsched.py > diagramas/ej2-2cores.png && \
 	./simusched lotes/ej2.tsk 4 2 1 SchedFCFS | python graphsched.py > diagramas/ej2-4cores.png
 
@@ -44,6 +44,9 @@ ejercicio5:
 	make && ./simusched lotes/ej2.tsk 1 2 1 SchedRR 2 | python graphsched.py > diagramas/ej5-quantum2.png && \
 	./simusched lotes/ej2.tsk 1 2 1 SchedRR 5 | python graphsched.py > diagramas/ej5-quantum5.png && \
 	./simusched lotes/ej2.tsk 1 2 1 SchedRR 10 | python graphsched.py > diagramas/ej5-quantum10.png
+
+ejercicio6:
+	echo "\n"
 
 ejercicio7:
 	make && ./simusched lotes/ej7sjf.tsk 1 1 1 SchedSJF 10 1 7 5 3 9 2 | python graphsched.py > diagramas/ej7-sjf.png && \
