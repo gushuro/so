@@ -16,23 +16,17 @@ int run(char *program_name[], char **program_argv[], unsigned int count) {
 	/* TODO: Implemenar */
 
 	int pipes[count][2];
+	for (int i = 0; i < count; ++i) {
 
-	for (int i = 0; i < count; ++i){
 		if (pipe(pipes[i])<0){
 			pexit("pipe error");
 		}
+	}
+	for (int i = 0; i < count; ++i){
 		pid_t pid = fork();
 		if (pid == 0) {
-			if (i == 0) {
-				close(pipes[i][0]);
-				dup2(1, pipes[1][1]);
-			} else if (i == count-1) {
-				dup2(pipes[i][0], 0);
-			} else {
-			dup2(pipes[i+1][1],1);
-			dup2(pipes[i][0], 0);
-			}
-
+			// Esto se ejecuta en los hijos.
+			// cierro todos los pipes que no me corresponden
 			for (int j = 0; j < count; ++j)
 			{
 				if (j != i+1) {
@@ -42,16 +36,25 @@ int run(char *program_name[], char **program_argv[], unsigned int count) {
 					close(pipes[j][0]);
 				}
 			}
-			sleep(1);
+			if (i == 0) {
+				close(pipes[i][0]);
+				dup2(pipes[1][1],1);
+			} else if (i == count-1) {
+				dup2(pipes[i][0], 0);
+			} else {
+				dup2(pipes[i+1][1],1);
+				dup2(pipes[i][0], 0);
+			}
+			//sleep(1);
 			execvp(program_name[i], program_argv[i]);
 			break;
+		} else{
+			close(pipes[i][0]);
+			close(pipes[i][1]);
 		}
+
 	}
-	for (int i = 0; i < count; ++i)
-	{
-		close(pipes[i][0]);
-		close(pipes[i][1]);
-	}
+			sleep(1);
 
 
 
