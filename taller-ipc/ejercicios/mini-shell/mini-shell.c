@@ -6,35 +6,83 @@
 #include <sys/wait.h>   /* waitpid */
 #include <unistd.h>     /* exit, fork */
 
-int run(char *program_name[], char **program_argv[], unsigned int count) {
-    /* TODO: Implemenar */
+void pexit(char *error) {
+	perror(error);
+	exit(EXIT_FAILURE);
+}
 
-    return 0;
+
+int run(char *program_name[], char **program_argv[], unsigned int count) {
+	/* TODO: Implemenar */
+
+	int pipes[count][2];
+
+	for (int i = 0; i < count; ++i){
+		if (pipe(pipes[i])<0){
+			pexit("pipe error");
+		}
+		pid_t pid = fork();
+		if (pid == 0) {
+			if (i == 0) {
+				close(pipes[i][0]);
+				dup2(1, pipes[1][1]);
+			} else if (i == count-1) {
+				dup2(pipes[i][0], 0);
+			} else {
+			dup2(pipes[i+1][1],1);
+			dup2(pipes[i][0], 0);
+			}
+
+			for (int j = 0; j < count; ++j)
+			{
+				if (j != i+1) {
+					close(pipes[j][1]);
+				}
+				if (j != i) {
+					close(pipes[j][0]);
+				}
+			}
+			sleep(1);
+			execvp(program_name[i], program_argv[i]);
+			break;
+		}
+	}
+	for (int i = 0; i < count; ++i)
+	{
+		close(pipes[i][0]);
+		close(pipes[i][1]);
+	}
+
+
+
+
+
+	return 0;
 }
 
 int main(int argc, char* argv[]) {
-    /* Parsing de "ls -al | wc | awk '{ print $2 }'" */
-    char *program_name[] = {
-        "/bin/ls",
-        "/usr/bin/wc",
-        "/usr/bin/awk",
-    };
+	/* Parsing de "ls -al | wc | awk '{ print $2 }'" */
+	char *program_name[] = {
+		"/bin/ls",
+		"/usr/bin/wc",
+		"/usr/bin/awk",
+	};
 
-    char *ls_argv[] = {"ls", "-al", NULL};
-    char *wc_argv[] = {"wc", NULL};
-    char *awk_argv[] = {"awk", "{ print $2 }", NULL};
+	char *ls_argv[] = {"ls", "-al", NULL};
+	char *wc_argv[] = {"wc", NULL};
+	char *awk_argv[] = {"awk", "{ print $2 }", NULL};
 
-    char **program_argv[] = {
-        ls_argv,
-        wc_argv,
-        awk_argv,
-    };
+	char **program_argv[] = {
+		ls_argv,
+		wc_argv,
+		awk_argv,
+	};
 
-    unsigned int count = 3;
+	unsigned int count = 3;
 
-    int status = run(program_name, program_argv, count);
+	int status = run(program_name, program_argv, count);
 
-    printf("[+] Status : %d\n", status);
+	printf("[+] Status : %d\n", status);
 
-    return 0;
+	return 0;
 }
