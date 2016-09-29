@@ -290,12 +290,13 @@ struct Ext2FSInode * Ext2FS::load_inode(unsigned int inode_number) {
 	unsigned int block_size = 1024 << superblock()->log_block_size;
 	uint inodes_per_block = block_size/superblock()->inode_size;
 	unsigned char* buf = (unsigned char*)malloc(block_size);
-	uint myblock = (offset / inodes_per_block)*block_size + itable;
+	uint myblock = (offset / inodes_per_block) + itable;
 	uint myindex = (offset % inodes_per_block)*superblock()->inode_size;
 	read_block(myblock, buf);
 	Ext2FSInode * inodo_bonito = (Ext2FSInode*)malloc(superblock()->inode_size);
 	*inodo_bonito = *((struct Ext2FSInode *) (buf+myindex));
 
+	free(buf);
 	return inodo_bonito;
 }
 ///////////////////////////////////////////////////////////////////////
@@ -368,6 +369,33 @@ struct Ext2FSInode * Ext2FS::get_file_inode_from_dir_inode(struct Ext2FSInode * 
 		from = load_inode(EXT2_RDIR_INODE_NUMBER);
 	//std::cerr << *from << std::endl;
 	assert(INODE_ISDIR(from));
+
+
+	//unsigned int block_size = 1024 << superblock()->log_block_size;
+	unsigned int block_size = 1024 << _superblock->log_block_size;
+	uint size = from->size;
+	uint cant_blocks = from->blocks;
+
+	unsigned char *buf = (unsigned char*)malloc(cant_blocks*block_size);
+	for (int i = 0; i < cant_blocks; ++i){
+		read_block(get_block_address(from, i), (unsigned char*)((unsigned int)(buf)+(i*block_size)));
+	}
+
+
+	bool this_is_the_end = false;
+	uint index = 0;
+	// chururun
+	while(index < size){
+		Ext2FSDirEntry *entry = (Ext2FSDirEntry*)((unsigned int)(buf)+(index));
+		if (strcmp(entry->name, filename)==0) {
+			free(buf);
+			return load_inode(entry->inode);
+		}
+		index += entry->record_length;
+	}
+	free(buf);
+	return NULL;
+
 
 }
 

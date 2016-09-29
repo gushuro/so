@@ -46,13 +46,23 @@ int main(int argc, char ** argv)
 {
 	HDD hdd(argv[1]);
 
-	test_hdd(&hdd);
+	//test_hdd(&hdd);
 
 	Ext2FS * fs = new Ext2FS(hdd, 1);
 
-	test_file_system(fs);
+	//test_file_system(fs);
 
-	test_block_groups(fs);
+	//test_block_groups(fs);
+
+	fd_t fd = fs->open("/grupos/g2/nota.txt", "r");
+
+	unsigned char buf[17];
+	int s = fs->seek(fd, 14000-1);
+	printf("s: %d\n", s);
+	int r = fs->read(fd, buf, 17);
+	printf("r: %d\n", r);
+	printf("%s\n", buf);
+	fs->close(fd);
 
 	return 0;
 }
