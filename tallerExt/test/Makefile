@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-g -Wall -pedantic -m32 -I../include/
+CFLAGS=-g -m32 -I../include/
 
 all: testhdd
 
