@@ -1,0 +1,5 @@
+llega el lector.
+si hay un escritor esperando, me encolo a la vc.
+si no hay escritor esperando, entonces:
+    si hay un escritor, me encolo a la vc
+    si no hay escritor, me meto

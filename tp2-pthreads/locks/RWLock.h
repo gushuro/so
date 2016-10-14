@@ -3,20 +3,21 @@
 #include <iostream>
 
 class RWLock {
-    public:
-        RWLock();
-        void rlock();
-        void wlock();
-        void runlock();
-        void wunlock();
+	public:
+		RWLock();
+		void rlock();
+		void wlock();
+		void runlock();
+		void wunlock();
 
-    private:
-        pthread_mutex_t m;
-        pthread_cond_t  turn;   /* Event: someone else's turn */
+	private:
+		pthread_mutex_t m;
+		pthread_cond_t turn;	/* Event: someone else's turn */
 
-        int reading;
-        int writing;
-        int writers;
+		int reading;			// cantidad de gente leyendo
+		int readerswaiting;		// gente escribiendo para leer
+		int writing;	// cant gente escribiendo (0 o 1)
+		int writerswaiting;	// Gente esperando para escribir.
 };
 
 #endif
