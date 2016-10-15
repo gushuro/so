@@ -14,6 +14,8 @@ class RWLock {
 		pthread_mutex_t m;
 		pthread_cond_t turn;	/* Event: someone else's turn */
 
+		pthread_mutex_t myTurn;
+
 		int reading;			// cantidad de gente leyendo
 		int writing;	// cant gente escribiendo (0 o 1)
 		int writerswaiting;	// Gente esperando para escribir.
