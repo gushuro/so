@@ -19,7 +19,7 @@ void RWLock :: rlock() {
 		}
 	} else {
 		// Si no, espero mientras alguien escribiendo
-		while (writing != 0) {
+		while (!(writing == 0)) {
 			// si hay uno escribiendo, espero
 			pthread_cond_wait(&turn, &m);
 		}
@@ -32,7 +32,7 @@ void RWLock :: rlock() {
 void RWLock :: wlock() {
 	pthread_mutex_lock(&m);
 	writerswaiting++;
-	while (reading !=0 || writing != 0) {
+	while (!(reading == 0 && writing == 0)) {
 		pthread_cond_wait(&turn, &m);
 	}
 	// escribo

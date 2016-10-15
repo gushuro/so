@@ -15,7 +15,6 @@ class RWLock {
 		pthread_cond_t turn;	/* Event: someone else's turn */
 
 		int reading;			// cantidad de gente leyendo
-		int readerswaiting;		// gente esperando para leer
 		int writing;	// cant gente escribiendo (0 o 1)
 		int writerswaiting;	// Gente esperando para escribir.
 };
