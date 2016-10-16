@@ -99,10 +99,14 @@ void atendedor_de_jugador(int socket_fd) {
 
     jugador jugadorNuevo;
     jugadorNuevo.socket = socket_fd;
-    jugadorNuevo.tablero_temporal = vector<vector<char> >(alto);
-    for (unsigned int i = 0; i < alto; ++i) {
-        jugadorNuevo.tablero_temporal[i] = vector<char>(ancho, VACIO);
-    }
+    jugadorNuevo.tablero_temporal = vector<vector<char>>(alto,vector<char>(ancho));
+    tableroLock.rlock();
+        for (unsigned int i = 0; i < alto; ++i) {
+            for (unsigned int j = 0; j < ancho; ++j) {
+                jugadorNuevo.tablero_temporal[i][j] = tablero_confirmado[i][j];
+            }
+        }
+    tableroLock.rlock();
     jugadoresLock.wlock();
         jugadores.push_back(jugadorNuevo);
     jugadoresLock.wunlock();
@@ -167,6 +171,7 @@ void* threadJugador(void* args){
                 }
             tableroLock.wunlock();
             jugadorNuevo->jugada_actual.clear();
+            jugadorNuevo->tablero_temporal.clear();
 
             if (enviar_ok(jugadorNuevo->socket) != 0) {
                 // se produjo un error al enviar. Cerramos todo.
@@ -262,15 +267,15 @@ int enviar_tablero(int socket_fd) {
     char buf[MENSAJE_MAXIMO+1];
     sprintf(buf, "STATUS ");
     int pos = 7;
-    for (unsigned int fila = 0; fila < alto; ++fila) {
-        for (unsigned int col = 0; col < ancho; ++col) {
-            tableroLock.rlock();
+    tableroLock.rlock();
+        for (unsigned int fila = 0; fila < alto; ++fila) {
+            for (unsigned int col = 0; col < ancho; ++col) {
                 char contenido = tablero_confirmado[fila][col];
-            tableroLock.runlock();
-            buf[pos] = (contenido == VACIO)? '-' : contenido;
-            pos++;
+                buf[pos] = (contenido == VACIO)? '-' : contenido;
+                pos++;
+            }
         }
-    }
+    tableroLock.runlock();
     buf[pos] = 0; //end of buffer
 
     return enviar(socket_fd, buf);
