@@ -96,12 +96,18 @@ void atendedor_de_jugador(int socket_fd) {
     jugador jugadorNuevo;
     jugadorNuevo.socket = socket_fd;
 
-    pthread_create(&(jugadorNuevo.thread), NULL, threadJugador, (void*)&jugadorNuevo);
+    cout << " de este lado es " <<  socket_fd << endl;
+    pthread_create(&(jugadorNuevo.thread), NULL, threadJugador, (void*)&socket_fd);
 }
 
 
 void* threadJugador(void* args){
-    jugador* jugadorNuevo = (jugador*) args;
+    jugador jugadorNuevoCreado;
+    jugador* jugadorNuevo = &jugadorNuevoCreado;
+    jugadorNuevo->socket = *((int*)args);
+
+
+    cout << " de este lado es " <<  jugadorNuevo->socket << endl;
 
     jugadorNuevo->tablero_temporal = vector<vector<char>>(alto,vector<char>(ancho));
     for (unsigned int i = 0; i < alto; ++i) {
@@ -149,11 +155,16 @@ void* threadJugador(void* args){
                 jugadorNuevo->jugada_actual.push_back(ficha);
                 jugadorNuevo->tablero_temporal[ficha.fila][ficha.columna] = ficha.contenido;
                 // OK
-        cout << "ficha valida todo bien" << endl;
+                cout << "ficha valida todo bien" << endl;
 
+                cout <<
+                cout << "a punto de enviar ok, socket: " << jugadorNuevo->socket<< endl; 
                 if (enviar_ok(jugadorNuevo->socket) != 0) {
+                    cout << "entro al enviar ok" << endl;
                     // se produjo un error al enviar. Cerramos todo.
                     terminar_servidor_de_jugador(jugadorNuevo);
+                }else{
+                    cout << "no entra al enviar ok" << endl;
                 }
             }
             else {
