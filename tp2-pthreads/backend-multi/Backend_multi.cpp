@@ -46,12 +46,9 @@ int main(int argc, const char* argv[]) {
         }
     }
 
-    // inicializar ambos tableros, se accede como tablero[fila][columna]
+    // inicializar tablero, se accede como tablero[fila][columna]
 
-    tablero_confirmado = vector<vector<char> >(alto);
-    for (unsigned int i = 0; i < alto; ++i) {
-        tablero_confirmado[i] = vector<char>(ancho, VACIO);
-    }
+    tablero_confirmado = vector<vector<char> >(alto, vector<char>(ancho, VACIO));
 
     int socketfd_cliente, socket_size;
     struct sockaddr_in local, remoto;
@@ -107,13 +104,11 @@ void* threadJugador(void* args){
     jugador* jugadorNuevo = (jugador*) args;
 
     jugadorNuevo->tablero_temporal = vector<vector<char>>(alto,vector<char>(ancho));
-    tableroLock.rlock();
-        for (unsigned int i = 0; i < alto; ++i) {
-            for (unsigned int j = 0; j < ancho; ++j) {
-                jugadorNuevo->tablero_temporal[i][j] = VACIO;
-            }
+    for (unsigned int i = 0; i < alto; ++i) {
+        for (unsigned int j = 0; j < ancho; ++j) {
+            jugadorNuevo->tablero_temporal[i][j] = VACIO;
         }
-    tableroLock.rlock();
+    }
     /*jugadoresLock.wlock();
         jugadores.push_back(jugadorNuevo);
     jugadoresLock.wunlock();*/
@@ -137,7 +132,10 @@ void* threadJugador(void* args){
         // espera una carta o la confirmación de la jugada
         char mensaje[MENSAJE_MAXIMO+1];
         int comando = recibir_comando(jugadorNuevo->socket, mensaje);
+        cout << "recibi comando" << endl;
+
         if (comando == MSG_CARTA) {
+        cout << "es carta" << endl;
 
             Casillero ficha;
             if (parsear_casillero(mensaje, ficha) != 0) {
@@ -151,6 +149,8 @@ void* threadJugador(void* args){
                 jugadorNuevo->jugada_actual.push_back(ficha);
                 jugadorNuevo->tablero_temporal[ficha.fila][ficha.columna] = ficha.contenido;
                 // OK
+        cout << "ficha valida todo bien" << endl;
+
                 if (enviar_ok(jugadorNuevo->socket) != 0) {
                     // se produjo un error al enviar. Cerramos todo.
                     terminar_servidor_de_jugador(jugadorNuevo);
@@ -167,13 +167,19 @@ void* threadJugador(void* args){
         }
         else if (comando == MSG_CONFIRMO) {
             // las cartas acumuladas conforman una jugada completa, escribirlas en el tablero y borrar las cartas temporales
+        cout << "es confirmo" << endl;
+
             tableroLock.wlock();
                 for (list<Casillero>::const_iterator casillero = jugadorNuevo->jugada_actual.begin(); casillero != jugadorNuevo->jugada_actual.end(); casillero++) {
                         tablero_confirmado[casillero->fila][casillero->columna] = casillero->contenido;
                 }
             tableroLock.wunlock();
             jugadorNuevo->jugada_actual.clear();
-            jugadorNuevo->tablero_temporal.clear();
+            for (unsigned int i = 0; i < alto; ++i) {
+                for (unsigned int j = 0; j < ancho; ++j) {
+                    jugadorNuevo->tablero_temporal[i][j] = VACIO;
+                }
+            }
 
             if (enviar_ok(jugadorNuevo->socket) != 0) {
                 // se produjo un error al enviar. Cerramos todo.
@@ -181,6 +187,8 @@ void* threadJugador(void* args){
             }
         }
         else if (comando == MSG_UPDATE) {
+        cout << "es update" << endl;
+
             if (enviar_tablero(jugadorNuevo->socket) != 0) {
                 // se produjo un error al enviar. Cerramos todo.
                 terminar_servidor_de_jugador(jugadorNuevo);
@@ -188,6 +196,8 @@ void* threadJugador(void* args){
         }
         else if (comando == MSG_INVALID) {
             // no es un mensaje válido, hacer de cuenta que nunca llegó
+            cout << "continuo" << endl;
+
             continue;
         }
         else {
@@ -276,8 +286,10 @@ int enviar_tablero(int socket_fd) {
             for (unsigned int col = 0; col < ancho; ++col) {
                 char contenido = tablero_confirmado[fila][col];
                 buf[pos] = (contenido == VACIO)? '-' : contenido;
+                cout << buf[pos];
                 pos++;
             }
+            cout << endl;
         }
     tableroLock.runlock();
     buf[pos] = 0; //end of buffer
@@ -341,15 +353,18 @@ void quitar_cartas(list<Casillero>& jugada_actual, vector<vector<char>> &tablero
 bool es_ficha_valida_en_jugada(const Casillero& ficha, const list<Casillero>& jugada_actual, vector<vector<char>> &tablero_temporal) {
     // si está fuera del tablero, no es válida
     if (ficha.fila < 0 || ficha.fila > alto - 1 || ficha.columna < 0 || ficha.columna > ancho - 1) {
+        cout << "ficha valida afuera tablero" << endl;
         return false;
     }
 
     // si el casillero está ocupado, tampoco es válida
     if (tablero_temporal[ficha.fila][ficha.columna] != VACIO) {
+        cout << "ficha valida casilla ocupada" << endl;
         return false;
     }
 
     if (jugada_actual.size() > 0) {
+        cout << "ficha validase fija en las otras   "<< jugada_actual.size() << endl;
 
         // no es la primera carta de lajugada, ya hay fichas colocadas en esta jugada
         Casillero mas_distante = casillero_mas_distante_de(ficha, jugada_actual);
