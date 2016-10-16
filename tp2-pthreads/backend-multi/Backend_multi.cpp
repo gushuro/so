@@ -9,7 +9,7 @@ RWLock jugadoresLock = RWLock();
 vector<jugador> jugadores;
 
 // variables globales del juego
-vector<vector<char> > tablero_temporal; // tiene cartas que aún no están confirmadas
+RWLock tableroLock = RWLock();
 vector<vector<char> > tablero_confirmado; // solamente tiene las cartas confirmadas
 unsigned int ancho = -1;
 unsigned int alto = -1;
@@ -47,10 +47,6 @@ int main(int argc, const char* argv[]) {
     }
 
     // inicializar ambos tableros, se accede como tablero[fila][columna]
-    tablero_temporal = vector<vector<char> >(alto);
-    for (unsigned int i = 0; i < alto; ++i) {
-        tablero_temporal[i] = vector<char>(ancho, VACIO);
-    }
 
     tablero_confirmado = vector<vector<char> >(alto);
     for (unsigned int i = 0; i < alto; ++i) {
@@ -103,6 +99,10 @@ void atendedor_de_jugador(int socket_fd) {
 
     jugador jugadorNuevo;
     jugadorNuevo.socket = socket_fd;
+    jugadorNuevo.tablero_temporal = vector<vector<char> >(alto);
+    for (unsigned int i = 0; i < alto; ++i) {
+        jugadorNuevo.tablero_temporal[i] = vector<char>(ancho, VACIO);
+    }
     jugadoresLock.wlock();
         jugadores.push_back(jugadorNuevo);
     jugadoresLock.wunlock();
@@ -141,9 +141,9 @@ void* threadJugador(void* args){
 
             // ficha contiene la nueva carta a colocar
             // verificar si es una posición válida del tablero
-            if (es_ficha_valida_en_jugada(ficha, jugadorNuevo->jugada_actual)) {
+            if (es_ficha_valida_en_jugada(ficha, jugadorNuevo->jugada_actual, jugadorNuevo->tablero_temporal)) {
                 jugadorNuevo->jugada_actual.push_back(ficha);
-                tablero_temporal[ficha.fila][ficha.columna] = ficha.contenido;
+                jugadorNuevo->tablero_temporal[ficha.fila][ficha.columna] = ficha.contenido;
                 // OK
                 if (enviar_ok(jugadorNuevo->socket) != 0) {
                     // se produjo un error al enviar. Cerramos todo.
@@ -151,7 +151,7 @@ void* threadJugador(void* args){
                 }
             }
             else {
-                quitar_cartas(jugadorNuevo->jugada_actual);
+                quitar_cartas(jugadorNuevo->jugada_actual, jugadorNuevo->tablero_temporal);
                 // ERROR
                 if (enviar_error(jugadorNuevo->socket) != 0) {
                     // se produjo un error al enviar. Cerramos todo.
@@ -161,9 +161,11 @@ void* threadJugador(void* args){
         }
         else if (comando == MSG_CONFIRMO) {
             // las cartas acumuladas conforman una jugada completa, escribirlas en el tablero y borrar las cartas temporales
-            for (list<Casillero>::const_iterator casillero = jugadorNuevo->jugada_actual.begin(); casillero != jugadorNuevo->jugada_actual.end(); casillero++) {
-                tablero_confirmado[casillero->fila][casillero->columna] = casillero->contenido;
-            }
+            tableroLock.wlock();
+                for (list<Casillero>::const_iterator casillero = jugadorNuevo->jugada_actual.begin(); casillero != jugadorNuevo->jugada_actual.end(); casillero++) {
+                        tablero_confirmado[casillero->fila][casillero->columna] = casillero->contenido;
+                }
+            tableroLock.wunlock();
             jugadorNuevo->jugada_actual.clear();
 
             if (enviar_ok(jugadorNuevo->socket) != 0) {
@@ -262,7 +264,9 @@ int enviar_tablero(int socket_fd) {
     int pos = 7;
     for (unsigned int fila = 0; fila < alto; ++fila) {
         for (unsigned int col = 0; col < ancho; ++col) {
-            char contenido = tablero_confirmado[fila][col];
+            tableroLock.rlock();
+                char contenido = tablero_confirmado[fila][col];
+            tableroLock.runlock();
             buf[pos] = (contenido == VACIO)? '-' : contenido;
             pos++;
         }
@@ -304,20 +308,19 @@ void terminar_servidor_de_jugador(jugador* j) {
                 jugadores.erase(it);
                 break;
             }
-
         }
     jugadoresLock.wunlock();
 
 
     close(j->socket);
 
-    quitar_cartas(j->jugada_actual);
+    quitar_cartas(j->jugada_actual, j->tablero_temporal);
 
     pthread_exit(NULL);
 }
 
 
-void quitar_cartas(list<Casillero>& jugada_actual) {
+void quitar_cartas(list<Casillero>& jugada_actual, vector<vector<char>> &tablero_temporal) {
     for (list<Casillero>::const_iterator casillero = jugada_actual.begin(); casillero != jugada_actual.end(); casillero++) {
         tablero_temporal[casillero->fila][casillero->columna] = VACIO;
     }
@@ -325,7 +328,7 @@ void quitar_cartas(list<Casillero>& jugada_actual) {
 }
 
 
-bool es_ficha_valida_en_jugada(const Casillero& ficha, const list<Casillero>& jugada_actual) {
+bool es_ficha_valida_en_jugada(const Casillero& ficha, const list<Casillero>& jugada_actual, vector<vector<char>> &tablero_temporal) {
 
     // si está fuera del tablero, no es válida
     if (ficha.fila < 0 || ficha.fila > alto - 1 || ficha.columna < 0 || ficha.columna > ancho - 1) {
@@ -356,7 +359,10 @@ bool es_ficha_valida_en_jugada(const Casillero& ficha, const list<Casillero>& ju
             int paso = distancia_horizontal / abs(distancia_horizontal);
             for (unsigned int columna = mas_distante.columna; columna != ficha.columna; columna += paso) {
                 // el casillero DEBE estar ocupado en el tablero de jugadas confirmadas
-                if (!(puso_carta_en(ficha.fila, columna, jugada_actual)) && tablero_confirmado[ficha.fila][columna] == VACIO) {
+                tableroLock.rlock();
+                    char casilla = tablero_confirmado[ficha.fila][columna];
+                tableroLock.runlock();
+                if (!(puso_carta_en(ficha.fila, columna, jugada_actual)) && casilla == VACIO) {
                     return false;
                 }
             }
@@ -373,7 +379,10 @@ bool es_ficha_valida_en_jugada(const Casillero& ficha, const list<Casillero>& ju
             int paso = distancia_vertical / abs(distancia_vertical);
             for (unsigned int fila = mas_distante.fila; fila != ficha.fila; fila += paso) {
                 // el casillero DEBE estar ocupado en el tablero de jugadas confirmadas
-                if (!(puso_carta_en(fila, ficha.columna, jugada_actual)) && tablero_confirmado[fila][ficha.columna] == VACIO) {
+                tableroLock.rlock();
+                    char casilla = tablero_confirmado[fila][ficha.columna];
+                tableroLock.runlock();
+                if (!(puso_carta_en(fila, ficha.columna, jugada_actual)) && casilla == VACIO) {
                     return false;
                 }
             }

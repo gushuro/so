@@ -13,6 +13,7 @@ struct jugador {
     pthread_t thread;
     char nombre[21];
     list<Casillero> jugada_actual;
+	vector<vector<char> > tablero_temporal; // tiene cartas que aún no están confirmadas
 };
 
 bool cargar_int(const char* numero, unsigned int& n);
@@ -36,8 +37,8 @@ int enviar_error(int socket_fd);
 // otras funciones
 void cerrar_servidor(int signal);
 void terminar_servidor_de_jugador(jugador *j);
-void quitar_cartas(list<Casillero>& jugada_actual);
-bool es_ficha_valida_en_jugada(const Casillero& ficha, const list<Casillero>& jugada_actual);
+void quitar_cartas(list<Casillero>& jugada_actual, vector<vector<char>> &tablero_temporal);
+bool es_ficha_valida_en_jugada(const Casillero& ficha, const list<Casillero>& jugada_actual, vector<vector<char>> &tablero_temporal);
 Casillero casillero_mas_distante_de(const Casillero& ficha, const list<Casillero>& jugada_actual);
 bool puso_carta_en(unsigned int fila, unsigned int columna, const list<Casillero>& jugada_actual);
 
