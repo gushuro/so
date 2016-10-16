@@ -96,20 +96,8 @@ int main(int argc, const char* argv[]) {
 
 void atendedor_de_jugador(int socket_fd) {
     // variables locales del jugador
-
     jugador jugadorNuevo;
     jugadorNuevo.socket = socket_fd;
-    jugadorNuevo.tablero_temporal = vector<vector<char>>(alto,vector<char>(ancho));
-    tableroLock.rlock();
-        for (unsigned int i = 0; i < alto; ++i) {
-            for (unsigned int j = 0; j < ancho; ++j) {
-                jugadorNuevo.tablero_temporal[i][j] = tablero_confirmado[i][j];
-            }
-        }
-    tableroLock.rlock();
-    jugadoresLock.wlock();
-        jugadores.push_back(jugadorNuevo);
-    jugadoresLock.wunlock();
 
     pthread_create(&(jugadorNuevo.thread), NULL, threadJugador, (void*)&jugadorNuevo);
 }
@@ -117,6 +105,20 @@ void atendedor_de_jugador(int socket_fd) {
 
 void* threadJugador(void* args){
     jugador* jugadorNuevo = (jugador*) args;
+
+    jugadorNuevo->tablero_temporal = vector<vector<char>>(alto,vector<char>(ancho));
+    tableroLock.rlock();
+        for (unsigned int i = 0; i < alto; ++i) {
+            for (unsigned int j = 0; j < ancho; ++j) {
+                jugadorNuevo->tablero_temporal[i][j] = VACIO;
+            }
+        }
+    tableroLock.rlock();
+    /*jugadoresLock.wlock();
+        jugadores.push_back(jugadorNuevo);
+    jugadoresLock.wunlock();*/
+
+    cout << "tamano tablero " << (jugadorNuevo->tablero_temporal.size()) << jugadorNuevo->tablero_temporal[0].size() << endl;
 
     if (recibir_nombre(jugadorNuevo->socket, jugadorNuevo->nombre) != 0) {
         // el cliente cortó la comunicación, o hubo un error. Cerramos todo.
@@ -193,6 +195,7 @@ void* threadJugador(void* args){
             terminar_servidor_de_jugador(jugadorNuevo);
         }
     }
+    return args;
 }
 
 
@@ -244,6 +247,7 @@ int recibir_comando(int socket_fd, char* mensaje) {
 
 int parsear_casillero(char* mensaje, Casillero& ficha) {
     int cant = sscanf(mensaje, "CARTA %d %d %c", &ficha.fila, &ficha.columna, &ficha.contenido);
+    cout << "parsear recibe vacio: " << (ficha.contenido == VACIO) << endl;
 
     if (cant == 3) {
         // el mensaje es CARTA y ficha contiene la carta que desea colocar
@@ -310,6 +314,7 @@ void terminar_servidor_de_jugador(jugador* j) {
         for (vector<jugador>::iterator it = jugadores.begin(); it != jugadores.end(); ++it)
         {
             if (j->socket == it->socket) {
+                // todo borrar el jugador
                 jugadores.erase(it);
                 break;
             }
@@ -334,7 +339,6 @@ void quitar_cartas(list<Casillero>& jugada_actual, vector<vector<char>> &tablero
 
 
 bool es_ficha_valida_en_jugada(const Casillero& ficha, const list<Casillero>& jugada_actual, vector<vector<char>> &tablero_temporal) {
-
     // si está fuera del tablero, no es válida
     if (ficha.fila < 0 || ficha.fila > alto - 1 || ficha.columna < 0 || ficha.columna > ancho - 1) {
         return false;
