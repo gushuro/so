@@ -15,9 +15,6 @@ RWLock :: RWLock() {
 
 void RWLock :: rlock() {
 	// Espero a que no haya escritores
-	// esperando, cuando no hay sigo
-//	pthread_mutex_lock(&myTurn);
-//	pthread_mutex_unlock(&myTurn);
 	pthread_mutex_lock(&antesalaM);
 		while(!puedoPasar) 
 			pthread_cond_wait(&antesalaCv, &antesalaM);
