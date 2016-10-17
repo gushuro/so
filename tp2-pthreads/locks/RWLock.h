@@ -20,7 +20,6 @@ class RWLock {
 
 		int reading;			// cantidad de gente leyendo
 		int writing;	// cant gente escribiendo (0 o 1)
-		int writerswaiting;	// Gente esperando para escribir.
 };
 
 #endif

@@ -3,7 +3,6 @@
 RWLock :: RWLock() {
 	reading = 0;
 	writing = 0;
-	writerswaiting = 0;
 	m = PTHREAD_MUTEX_INITIALIZER;
 	turn = PTHREAD_COND_INITIALIZER;
 
@@ -24,9 +23,8 @@ void RWLock :: rlock() {
 	pthread_mutex_lock(&m);
 		// No hay escritor esperando
 		// espero mientras alguien escribiendo
-		while (!(writing == 0)) {
+		while (!(writing == 0))
 			pthread_cond_wait(&turn, &m);
-		}
 		// sumo a los lectores
 		reading++;
 	pthread_mutex_unlock(&m);
@@ -43,13 +41,10 @@ void RWLock :: wlock() {
 	pthread_mutex_unlock(&antesalaM);
 
 	pthread_mutex_lock(&m);
-		// no hay escritores esperando
-		writerswaiting++;
-		while (!(reading == 0 && writing == 0)) {
+		// no hay mas escritores en antesala
+		while (!(reading == 0 && writing == 0))
 			pthread_cond_wait(&turn, &m);
-		}
 		// escribo
-		writerswaiting--;
 		writing = 1;
 	pthread_mutex_unlock(&m);
 }
@@ -57,9 +52,8 @@ void RWLock :: wlock() {
 void RWLock :: runlock() {
 	pthread_mutex_lock(&m);
 		reading--;
-		if (reading == 0){
+		if (reading == 0)
 			pthread_cond_broadcast(&turn);
-		}
 	pthread_mutex_unlock(&m);
 }
 
