@@ -13,7 +13,6 @@ class RWLock {
 	private:
 		pthread_mutex_t m;
 		pthread_cond_t turn;	/* Event: someone else's turn */
-		pthread_mutex_t myTurn;
 
 		bool puedoPasar; 
 		pthread_cond_t antesalaCv;
