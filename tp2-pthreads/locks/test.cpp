@@ -19,6 +19,39 @@ uint64_t gettid() {
     return threadId;
 }
 
+void menu(){
+  printf("\n████████╗███████╗███████╗████████╗    ██████╗ ██╗    ██╗██╗      ██████╗  ██████╗██╗  ██╗ \n");
+  printf("╚══██╔══╝██╔════╝██╔════╝╚══██╔══╝    ██╔══██╗██║    ██║██║     ██╔═══██╗██╔════╝██║ ██╔╝ \n");
+  printf("   ██║   █████╗  ███████╗   ██║       ██████╔╝██║ █╗ ██║██║     ██║   ██║██║     █████╔╝  \n");
+  printf("   ██║   ██╔══╝  ╚════██║   ██║       ██╔══██╗██║███╗██║██║     ██║   ██║██║     ██╔═██╗  \n");
+  printf("   ██║   ███████╗███████║   ██║       ██║  ██║╚███╔███╔╝███████╗╚██████╔╝╚██████╗██║  ██╗ \n");
+  printf("   ╚═╝   ╚══════╝╚══════╝   ╚═╝       ╚═╝  ╚═╝ ╚══╝╚══╝ ╚══════╝ ╚═════╝  ╚═════╝╚═╝  ╚═╝ \n\n");
+
+  printf("Para revisar el correcto funcionamiento del RWLock, ejecutamos distintos casos de threads lectores y escritores \n");
+  printf("que comparten un mismo recurso: Un contador que comienza en 0. Los escritores lo incrementan en 1,  \n");
+  printf("y los lectores leen su contenido y lo imprimen en pantalla \n \n");
+
+  printf("Tests posibles a ejecutar: \n\n");
+  printf("________ CASOS BORDES ______________________ \n");
+  printf("1 - 20 threads de lectura \n");
+  printf("2 - 20 threads de escritura \n\n");
+
+  printf("________ CASO INTERCALADOS _________________ \n");
+  printf("3 - 20 lectores y 10 escritores, intercalados primero 2 lectores y luego 1 escritor \n");
+  printf("4 - 10 lectores y 20 escritores, intercalados primero 2 escritores y luego 1 lector \n\n");
+
+  printf("________ CASOS DE POSIBLE INANICIÓN ________ \n");
+  printf("5 - 5 escritores, luego 1 lector y después 14 escritores \n");
+  printf("6 - 5 lectores, luego 1 escritor y después 14 lectores \n\n");
+
+  printf("________ CASOS ALEATORIOS __________________ \n");
+  printf("7 - 20 threads de tipo aleatorio \n");
+  printf("8 - 20 threads de tipo aleatorio, y duracion aleatoria \n\n");
+  
+
+  printf("Ingrese número de test a ejecutar (Q para salir, H para mostrar este menú): ");
+}
+
 void* threadEscritor(void* args){
   auto tid = gettid();
   int contadorLocal;
@@ -140,27 +173,27 @@ void testDosLectoresUnEscritor(){
   pthread_exit(NULL); // necesario para que no termine antes que sus threads hijos
 }
 
-void menu(){
-  printf("\n████████╗███████╗███████╗████████╗    ██████╗ ██╗    ██╗██╗      ██████╗  ██████╗██╗  ██╗ \n");
-  printf("╚══██╔══╝██╔════╝██╔════╝╚══██╔══╝    ██╔══██╗██║    ██║██║     ██╔═══██╗██╔════╝██║ ██╔╝ \n");
-  printf("   ██║   █████╗  ███████╗   ██║       ██████╔╝██║ █╗ ██║██║     ██║   ██║██║     █████╔╝  \n");
-  printf("   ██║   ██╔══╝  ╚════██║   ██║       ██╔══██╗██║███╗██║██║     ██║   ██║██║     ██╔═██╗  \n");
-  printf("   ██║   ███████╗███████║   ██║       ██║  ██║╚███╔███╔╝███████╗╚██████╔╝╚██████╗██║  ██╗ \n");
-  printf("   ╚═╝   ╚══════╝╚══════╝   ╚═╝       ╚═╝  ╚═╝ ╚══╝╚══╝ ╚══════╝ ╚═════╝  ╚═════╝╚═╝  ╚═╝ \n\n");
+void testDosEscritoresUnLector(){
+  // Caso dos lectores y un escritor a la vez
+  contador = 0;
+  int n = 10;
 
-  printf("Para revisar el correcto funcionamiento del RWLock, ejecutamos distintos casos de threads lectores y escritores \n");
-  printf("que comparten un mismo recurso: Un contador que comienza en 0. Los escritores lo incrementan en 1,  \n");
-  printf("y los lectores leen su contenido y lo imprimen en pantalla \n \n");
+  printf("Este test creará 2 threads de escritura y uno de lectura a la vez. \n");
+  sleep(1);
 
-  printf("Tests posibles a ejecutar: \n");
-  printf("1 - 20 lectores y 10 escritores, intercalados primero 2 lectores y luego 1 escritor \n");
-  printf("2 - 20 threads de tipo aleatorio \n");
-  printf("3 - 20 threads de lectura \n");
-  printf("4 - 20 threads de escritura \n");
-  printf("5 - 5 escritores, luego 1 lector y después 14 escritores \n");
-  printf("6 - 20 threads de tipo aleatorio, y duracion aleatoria \n\n");
+  pthread_t *threads;
+  threads = (pthread_t*)calloc(n*3, sizeof(pthread_t));
+  for(int i = 0; i < n*3; i=i+3){
+    pthread_t* p1 = &threads[i];
+    pthread_create(&threads[i], NULL, threadEscritor, p1);
+    pthread_t* p2 = &threads[i+1];
+    pthread_create(&threads[i+1], NULL, threadEscritor, p2);
+    pthread_t* p3 = &threads[i+2];
+    pthread_create(&threads[i+2], NULL, threadLector, p3);
+  }
+  free(threads);
 
-  printf("Ingrese número de test a ejecutar (Q para salir, H para mostrar este menú): ");
+  pthread_exit(NULL); // necesario para que no termine antes que sus threads hijos
 }
 
 void testInanicionLectura(){
@@ -182,6 +215,30 @@ void testInanicionLectura(){
   for(int i = 5; i < 20; ++i){
     pthread_t* pi = &threads[i];
     pthread_create(&threads[i], NULL, threadEscritor, pi);
+  }
+  free(threads);
+  pthread_exit(NULL); // necesario para que no termine antes que sus threads hijos
+}
+
+void testInanicionEscritura(){
+  contador = 0;
+  int n = 20;
+
+  printf("5 lectores, luego 1 escritor y después 14 lectores \n");
+  sleep(1);
+
+  pthread_t *threads;
+  threads = (pthread_t*)calloc(n, sizeof(pthread_t));
+  
+  for(int i = 0; i < 5; ++i){
+    pthread_t* pi = &threads[i];
+    pthread_create(&threads[i], NULL, threadLector, pi);
+  }
+  pthread_t* p2 = &threads[1];
+  pthread_create(&threads[1], NULL, threadEscritor, p2);
+  for(int i = 5; i < 20; ++i){
+    pthread_t* pi = &threads[i];
+    pthread_create(&threads[i], NULL, threadLector, pi);
   }
   free(threads);
   pthread_exit(NULL); // necesario para que no termine antes que sus threads hijos
@@ -307,20 +364,27 @@ int main(int argc, char const *argv[]) {
   }else if (ingresado == "H" || ingresado == "h"){
     menu();
   }else if (ingresado == "1"){
-    testDosLectoresUnEscritor();
-  }else if (ingresado == "2"){
-    veinteAleatorios();
-
-  }else if (ingresado == "3"){
     veinteLectores();
+    
+  }else if (ingresado == "2"){
+    veinteEscritores();
+    
+  }else if (ingresado == "3"){
+    testDosLectoresUnEscritor();
 
   }else if (ingresado == "4"){
-    veinteEscritores();
+  testDosEscritoresUnLector();    
 
   }else if (ingresado == "5"){
     testInanicionLectura();
 
   }else if (ingresado == "6"){
+    testInanicionEscritura();
+
+  }else if (ingresado == "7"){
+    veinteAleatorios();
+
+  }else if (ingresado == "8"){
     veinteAleatoriosDuracionAleatoria();
 
   }else{
