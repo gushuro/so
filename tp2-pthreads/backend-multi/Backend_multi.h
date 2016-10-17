@@ -10,7 +10,6 @@ using namespace std;
 
 struct jugador {
     int socket;    // identificamos a los jugs por sus sockets
-    pthread_t thread;
     char nombre[21];
     list<Casillero> jugada_actual;
 	vector<vector<char> > tablero_temporal; // tiene cartas que aún no están confirmadas
