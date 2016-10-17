@@ -91,10 +91,6 @@ int main(int argc, const char* argv[]) {
 
 
 void atendedor_de_jugador(int socket_fd) {
-    // variables locales del jugador
-    jugador jugadorNuevo;
-    jugadorNuevo.socket = socket_fd;
-
     //cout << " de este lado es " <<  socket_fd << endl;
     pthread_create(&(jugadorNuevo.thread), NULL, threadJugador, (void*)&socket_fd);
 }
