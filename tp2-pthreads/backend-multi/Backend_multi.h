@@ -18,7 +18,7 @@ struct jugador {
 
 bool cargar_int(const char* numero, unsigned int& n);
 
-void atendedor_de_jugador(int socket_fd);
+void* atendedor_de_jugador(void* args);
 
 
 // mensajes recibidos por el server
@@ -41,8 +41,5 @@ void quitar_cartas(list<Casillero>& jugada_actual, vector<vector<char>> &tablero
 bool es_ficha_valida_en_jugada(const Casillero& ficha, const list<Casillero>& jugada_actual, vector<vector<char>> &tablero_temporal);
 Casillero casillero_mas_distante_de(const Casillero& ficha, const list<Casillero>& jugada_actual);
 bool puso_carta_en(unsigned int fila, unsigned int columna, const list<Casillero>& jugada_actual);
-
-
-void* threadJugador(void* args);
 
 #endif

@@ -81,7 +81,8 @@ int main(int argc, const char* argv[]) {
         if ((socketfd_cliente = accept(socket_servidor, (struct sockaddr*) &remoto, (socklen_t*) &socket_size)) == -1)
             cerr << "Error al aceptar conexion" << endl;
         else {
-            atendedor_de_jugador(socketfd_cliente);
+            jugador jugadorNuevo;
+            pthread_create(&(jugadorNuevo.thread), NULL, atendedor_de_jugador, (void*)&socketfd_cliente);
         }
     }
 
@@ -89,22 +90,10 @@ int main(int argc, const char* argv[]) {
     return 0;
 }
 
-
-void atendedor_de_jugador(int socket_fd) {
-    // variables locales del jugador
-    jugador jugadorNuevo;
-    jugadorNuevo.socket = socket_fd;
-
-    //cout << " de este lado es " <<  socket_fd << endl;
-    pthread_create(&(jugadorNuevo.thread), NULL, threadJugador, (void*)&socket_fd);
-}
-
-
-void* threadJugador(void* args){
+void* atendedor_de_jugador(void* args){
     jugador jugadorNuevoCreado;
     jugador* jugadorNuevo = &jugadorNuevoCreado;
     jugadorNuevo->socket = *((int*)args);
-
 
     //cout << " de este lado es " <<  jugadorNuevo->socket << endl;
 
