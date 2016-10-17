@@ -13,3 +13,4 @@ test: RWLock.cpp RWLock.h test.cpp
 
 clean:
 	rm -f *.o
+	rm -f test
