@@ -14,8 +14,9 @@ RWLock :: RWLock() {
 }
 
 void RWLock :: rlock() {
-	// Espero a que no haya escritores
 	pthread_mutex_lock(&antesalaM);
+		// "Sala de espera"
+		// espero a que no haya escritores esperando
 		while(!puedoPasar) 
 			pthread_cond_wait(&antesalaCv, &antesalaM);
 	pthread_mutex_unlock(&antesalaM);
@@ -34,12 +35,15 @@ void RWLock :: rlock() {
 
 void RWLock :: wlock() {
 	pthread_mutex_lock(&antesalaM);
+		//"Sala de espera"
+		// espero a que no haya otros escritores esperando
 		while(!puedoPasar) 
 			pthread_cond_wait(&antesalaCv, &antesalaM);
-		puedoPasar = false; // no dejo pasar a nadie mas
+		puedoPasar = false; // paso yo, no dejo pasar a nadie mas
 	pthread_mutex_unlock(&antesalaM);
 
 	pthread_mutex_lock(&m);
+		// no hay escritores esperando
 		writerswaiting++;
 		while (!(reading == 0 && writing == 0)) {
 			pthread_cond_wait(&turn, &m);
@@ -61,6 +65,8 @@ void RWLock :: runlock() {
 
 void RWLock :: wunlock() {
 	pthread_mutex_lock(&antesalaM);
+		// termine de escribir
+		// aviso que se puede pasar
 	    puedoPasar = true;
 		pthread_cond_broadcast(&antesalaCv);
 	pthread_mutex_unlock(&antesalaM);
