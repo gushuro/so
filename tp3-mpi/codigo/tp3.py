@@ -130,14 +130,28 @@ class Node(object):
         processed = set()
         nodes_min = {}
 
-	###################
-	# Completar
-	###################
+       	###### esto es nuestro:
+       	for node in queue:
+       		processed.append(node)
+	        self.__comm.send(thing_hash, dest=node, tag=TAG_NODE_FIND_NODES_REQ)
+	        # wait....
+	        # devuelve una lista de tuplas de hashes y ranks de nodos
+	        node_list = self.__comm.recv(source=node, tag=TAG_NODE_FIND_NODES_RESP)
+	        # hay que volver a encolar en queue a node_list (siempre que no hayan sido visitados previamente)
+	        # no hace falta recorrer mas que los que vamos recibiendo, porque cuando 
+	        # joineamos lo hacemos por parentezco entre los hashes de los nodos
+       	#######
+		
+
         return nodes_min
 
     # casi igual a find_node pero agrega los archivos necesarios al hacer join. Pueden hacerlo en un solo método
     def __find_nodes_join(self, contact_nodes):
         nodes_min = set()
+        #TAG_NODE_FIND_NODES_JOIN_REQ
+
+        #data = (self.__hash, self.__rank)
+        #self.__comm.send(data, dest=contact_node_rank, tag=TAG_NODE_FIND_NODES_JOIN_REQ)
 	################
 	# Completar
 	################
@@ -221,11 +235,12 @@ class Node(object):
 
         # Propago consulta de find nodes a traves de mis minimos locales.
         nodes_min = self.__find_nodes(nodes_min_local, file_hash)
-	########################
-	#     Completar
-	########################
- 
-            # Envio el archivo a los nodos más cercanos
+
+		######################## Completamos:
+
+
+		########################
+        # Envio el archivo a los nodos más cercanos
 
     def __handle_console_look_up(self, source, data):
         # IMPORTANTE El store va a generar MSJs entre nodos el cual necesita
@@ -427,7 +442,7 @@ class Console(object):
         print(">>> Saliendo...")
         for i in range(MPI.COMM_WORLD.Get_size()):
                 data = None
-                self.__comm.isend(data, dest=i, tag=TAG_CONSOLE_EXIT_REQ)
+				self.__comm.isend(data, dest=i, tag=TAG_CONSOLE_EXIT_REQ)
 
         self.__finished = True
 
