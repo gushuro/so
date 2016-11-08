@@ -8,8 +8,11 @@ int socket_servidor = -1;
 
 
 // variables globales del juego
+pthread_mutex_t socketMutex;
 RWLock tableroLock = RWLock();
+RWLock temporalLock = RWLock();
 vector<vector<char> > tablero_confirmado; // solamente tiene las cartas confirmadas
+vector<vector<char> > tablero_temporal; // tiene cartas que aún no están confirmadas
 unsigned int ancho = -1;
 unsigned int alto = -1;
 
@@ -48,6 +51,10 @@ int main(int argc, const char* argv[]) {
     // inicializar tablero, se accede como tablero[fila][columna]
 
     tablero_confirmado = vector<vector<char> >(alto, vector<char>(ancho, VACIO));
+    tablero_temporal = vector<vector<char> >(alto);
+    for (unsigned int i = 0; i < alto; ++i) {
+        tablero_temporal[i] = vector<char>(ancho, VACIO);
+    }
 
     int socketfd_cliente, socket_size;
     struct sockaddr_in local, remoto;
@@ -75,12 +82,15 @@ int main(int argc, const char* argv[]) {
         return 1;
     }
 
+    socketMutex = PTHREAD_MUTEX_INITIALIZER;
     // aceptar conexiones entrantes.
     socket_size = sizeof(remoto);
     while (true) {
-        if ((socketfd_cliente = accept(socket_servidor, (struct sockaddr*) &remoto, (socklen_t*) &socket_size)) == -1)
+        pthread_mutex_lock(&socketMutex);
+        if ((socketfd_cliente = accept(socket_servidor, (struct sockaddr*) &remoto, (socklen_t*) &socket_size)) == -1) {
             cerr << "Error al aceptar conexion" << endl;
-        else {
+            pthread_mutex_unlock(&socketMutex);
+        } else {
             pthread_t thr;
             pthread_create(&(thr), NULL, atendedor_de_jugador, (void*)&socketfd_cliente);
         }
@@ -94,13 +104,13 @@ void* atendedor_de_jugador(void* args){
     jugador jugadorNuevoCreado;
     jugador* jugadorNuevo = &jugadorNuevoCreado;
     jugadorNuevo->socket = *((int*)args);
-
-    jugadorNuevo->tablero_temporal = vector<vector<char>>(alto,vector<char>(ancho));
+    pthread_mutex_unlock(&socketMutex);
+    /*jugadorNuevo->tablero_temporal = vector<vector<char>>(alto,vector<char>(ancho));
     for (unsigned int i = 0; i < alto; ++i) {
         for (unsigned int j = 0; j < ancho; ++j) {
             jugadorNuevo->tablero_temporal[i][j] = VACIO;
         }
-    }
+    }*/
 
     if (recibir_nombre(jugadorNuevo->socket, jugadorNuevo->nombre) != 0) {
         // el cliente cortó la comunicación, o hubo un error. Cerramos todo.
@@ -129,17 +139,19 @@ void* atendedor_de_jugador(void* args){
 
             // ficha contiene la nueva carta a colocar
             // verificar si es una posición válida del tablero
-            if (es_ficha_valida_en_jugada(ficha, jugadorNuevo->jugada_actual, jugadorNuevo->tablero_temporal)) {
+            temporalLock.wlock();
+            if (es_ficha_valida_en_jugada(ficha, jugadorNuevo->jugada_actual)) {
                 jugadorNuevo->jugada_actual.push_back(ficha);
-                jugadorNuevo->tablero_temporal[ficha.fila][ficha.columna] = ficha.contenido;
+                tablero_temporal[ficha.fila][ficha.columna] = ficha.contenido;
                 // OK
+                temporalLock.wunlock();
                 if (enviar_ok(jugadorNuevo->socket) != 0){
                     // se produjo un error al enviar. Cerramos todo.
                     terminar_servidor_de_jugador(jugadorNuevo);
                 }
-            }
-            else {
-                quitar_cartas(jugadorNuevo->jugada_actual, jugadorNuevo->tablero_temporal);
+            } else {
+                quitar_cartas(jugadorNuevo->jugada_actual);
+                temporalLock.wunlock();
                 // ERROR
                 if (enviar_error(jugadorNuevo->socket) != 0) {
                     // se produjo un error al enviar. Cerramos todo.
@@ -155,11 +167,7 @@ void* atendedor_de_jugador(void* args){
                 }
             tableroLock.wunlock();
             jugadorNuevo->jugada_actual.clear();
-            for (unsigned int i = 0; i < alto; ++i) {
-                for (unsigned int j = 0; j < ancho; ++j) {
-                    jugadorNuevo->tablero_temporal[i][j] = VACIO;
-                }
-            }
+            
 
             if (enviar_ok(jugadorNuevo->socket) != 0) {
                 // se produjo un error al enviar. Cerramos todo.
@@ -297,27 +305,32 @@ void terminar_servidor_de_jugador(jugador* j) {
 
     close(j->socket);
 
-    quitar_cartas(j->jugada_actual, j->tablero_temporal);
+    quitar_cartas(j->jugada_actual);
 
     pthread_exit(NULL);
 }
 
-
-void quitar_cartas(list<Casillero>& jugada_actual, vector<vector<char>> &tablero_temporal) {
+// esta funcion se llama dentro de un temporalLock
+void quitar_cartas(list<Casillero>& jugada_actual) {
     for (list<Casillero>::const_iterator casillero = jugada_actual.begin(); casillero != jugada_actual.end(); casillero++) {
+        //temporalLock.wlock();
         tablero_temporal[casillero->fila][casillero->columna] = VACIO;
+        //temporalLock.wunlock();
     }
     jugada_actual.clear();
 }
 
-
-bool es_ficha_valida_en_jugada(const Casillero& ficha, const list<Casillero>& jugada_actual, vector<vector<char>> &tablero_temporal) {
+// esta funcion se llama dentro de un lock del tablero temporal
+bool es_ficha_valida_en_jugada(const Casillero& ficha, const list<Casillero>& jugada_actual) {
     // si está fuera del tablero, no es válida
     if (ficha.fila < 0 || ficha.fila > alto - 1 || ficha.columna < 0 || ficha.columna > ancho - 1) {
         return false;
     }
 
     // si el casillero está ocupado, tampoco es válida
+    //temporalLock.rlock();
+    //    char c = ;
+    //temporalLock.runlock();
     if (tablero_temporal[ficha.fila][ficha.columna] != VACIO) {
         return false;
     }
