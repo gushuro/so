@@ -165,15 +165,9 @@ class Node(object):
 
     # casi igual a find_node pero agrega los archivos necesarios al hacer join. Pueden hacerlo en un solo método
     def __find_nodes_join(self, contact_nodes):
-        nodes_min = set()
-        #TAG_NODE_FIND_NODES_JOIN_REQ
-
-        #data = (self.__hash, self.__rank)
-        #self.__comm.send(data, dest=contact_node_rank, tag=TAG_NODE_FIND_NODES_JOIN_REQ)
-    	
+        nodes_min = set() # Retorno: Un set de tuplas node_hash, node_rank 
         queue = contact_nodes
         processed = set()
-        nodes_min = {} # Retorno: Un diccionario que va de rank a hash
         distancia_minima = 1000 # no puede tener mas distancia que 1000
 
         ###### esto es nuestro:
@@ -185,9 +179,10 @@ class Node(object):
         # los siguientes
         for node in queue:
             if (distance(node[0], thing_hash) < distancia_minima):
-                nodes_min = {node[1]: node[0]}
+                nodes_min = set() # lo creo de vuelta
+                nodes_min.append(node)
             elif (distance(node[0], thing_hash) == distancia_minima):
-                nodes_min[node[1]] = node[0]
+                nodes_min.append(node) # lo appendeo al existente
 
             self.__comm.send(thing_hash, dest=node[1], tag=TAG_NODE_FIND_NODES_JOIN_REQ)
             # wait....
@@ -316,7 +311,8 @@ class Node(object):
     	########################
         # Esto es nuestro:
         
-        first_node_rank = nodes_min.keys()[0] # tomo el primer rank (por tomar alguno)
+        # first_node_rank = nodes_min.keys()[0] # tomo el primer rank (por tomar alguno)
+        first_node_rank = nodes_min[0] # tomo el primer rank (por tomar alguno). Creemos que esto devuelve la primera key en python
 
         # busco el archivo en el nodo que lo tiene
         data = self.__comm.send(file_hash, dest=first_node_rank, tag=TAG_NODE_LOOKUP_REQ)
