@@ -77,10 +77,10 @@ class Node(object):
         self.__rank = node_rank
         self.__routing_table = {}
 
-    def __get_min(self, nodes, thing_hash):
+    def __get_min(self, nodes, thing_hash): # devuelve una tupla de nodo hash y rank
         return self.__get_mins(nodes, thing_hash)[0]
 
-    def __get_mins(self, nodes, thing_hash):
+    def __get_mins(self, nodes, thing_hash): # devuelve lista de tuplas nodos hash y rank
 
         # Calculo mínimo.
         dist_min = sys.maxint
@@ -128,16 +128,34 @@ class Node(object):
     def __find_nodes(self, contact_nodes, thing_hash):
         queue = contact_nodes
         processed = set()
-        nodes_min = {}
+        nodes_min = {} # Retorno: Un diccionario que va de rank a hash
+        distancia_minima = 1000 # no puede tener mas distancia que 1000
 
        	###### esto es nuestro:
+        
+        # los iniciales
+        for node in queue:
+            processed.append(node)
+
+        # los siguientes
        	for node in queue:
-       		processed.append(node)
-	        self.__comm.send(thing_hash, dest=node, tag=TAG_NODE_FIND_NODES_REQ)
-	        # wait....
-	        # devuelve una lista de tuplas de hashes y ranks de nodos
-	        node_list = self.__comm.recv(source=node, tag=TAG_NODE_FIND_NODES_RESP)
-	        # hay que volver a encolar en queue a node_list (siempre que no hayan sido visitados previamente)
+            if (distance(node[0], thing_hash) < distancia_minima):
+                nodes_min = {node[1]: node[0]}
+            elif (distance(node[0], thing_hash) == distancia_minima):
+                nodes_min[node[1]] = node[0]
+
+            self.__comm.send(thing_hash, dest=node[1], tag=TAG_NODE_FIND_NODES_REQ)
+            # wait....
+            # devuelve una lista de tuplas de hashes y ranks de nodos
+            node_list = self.__comm.recv(source=node[1], tag=TAG_NODE_FIND_NODES_RESP)
+
+            # hay que volver a encolar en queue a node_list (siempre que no hayan sido visitados previamente)
+            for node2 in node_list:
+                if not node2 in processed:
+                    processed.append(node2) # lo marco como visitado
+                    queue.append(node2) # lo encolo
+
+
 	        # no hace falta recorrer mas que los que vamos recibiendo, porque cuando 
 	        # joineamos lo hacemos por parentezco entre los hashes de los nodos
        	#######
@@ -152,9 +170,45 @@ class Node(object):
 
         #data = (self.__hash, self.__rank)
         #self.__comm.send(data, dest=contact_node_rank, tag=TAG_NODE_FIND_NODES_JOIN_REQ)
-	################
-	# Completar
-	################
+    	
+        queue = contact_nodes
+        processed = set()
+        nodes_min = {} # Retorno: Un diccionario que va de rank a hash
+        distancia_minima = 1000 # no puede tener mas distancia que 1000
+
+        ###### esto es nuestro:
+        
+        # los iniciales
+        for node in queue:
+            processed.append(node)
+
+        # los siguientes
+        for node in queue:
+            if (distance(node[0], thing_hash) < distancia_minima):
+                nodes_min = {node[1]: node[0]}
+            elif (distance(node[0], thing_hash) == distancia_minima):
+                nodes_min[node[1]] = node[0]
+
+            self.__comm.send(thing_hash, dest=node[1], tag=TAG_NODE_FIND_NODES_JOIN_REQ)
+            # wait....
+            # devuelve una lista de tuplas de hashes y ranks de nodos
+            (node_list, files) = self.__comm.recv(source=node[1], tag=TAG_NODE_FIND_NODES_JOIN_RESP)
+
+            # hay que copiar los files al nodo actual
+            for file_hash, file_name in files.items():
+                self.__files[file_hash] = file_name
+
+            # hay que volver a encolar en queue a node_list (siempre que no hayan sido visitados previamente)
+            for node2 in node_list:
+                if not node2 in processed:
+                    processed.append(node2) # lo marco como visitado
+                    queue.append(node2) # lo encolo
+
+
+            # no hace falta recorrer mas que los que vamos recibiendo, porque cuando 
+            # joineamos lo hacemos por parentezco entre los hashes de los nodos
+        #######
+        
         return nodes_min
 
     def __print_routing_table(self):
@@ -188,7 +242,7 @@ class Node(object):
             data = (self.__hash, self.__rank)
             self.__comm.send(data, dest=contact_node_rank, tag=TAG_NODE_FIND_NODES_JOIN_REQ)
 
-            # Recibir respuesta por find nodes (data = [(node_hash, node_rank)])
+            # Recibir respuesta por find nodes, data = [(node_hash, node_rank)]
             # files es un dicc con los archivos de node del que soy el nuevo nodo más cercano
             (data, files) = self.__comm.recv(source=contact_node_rank, tag=TAG_NODE_FIND_NODES_JOIN_RESP)
 
@@ -236,11 +290,15 @@ class Node(object):
         # Propago consulta de find nodes a traves de mis minimos locales.
         nodes_min = self.__find_nodes(nodes_min_local, file_hash)
 
-		######################## Completamos:
+        # Tengo que enviar el archivo a los nodos más cercanos
 
+        ######################## Esto es nuestro:
 
-		########################
-        # Envio el archivo a los nodos más cercanos
+        # ya tengo los nodos mas cercanos en nodes_min, tengo que guardar el archivo en todos ellos
+        for node in nodes_min:
+            self.__comm.send(data, dest=node, tag=TAG_NODE_STORE_REQ) # hago store en ese nodo. Por ahora asumimos que no devuelve nada
+
+        ########################
 
     def __handle_console_look_up(self, source, data):
         # IMPORTANTE El store va a generar MSJs entre nodos el cual necesita
@@ -255,9 +313,16 @@ class Node(object):
         # Propago consulta de find nodes a traves de mis minimos locales.
         nodes_min = self.__find_nodes(nodes_min_local, file_hash)
 
-	########################
-	#     Completar
-	########################
+    	########################
+        # Esto es nuestro:
+        
+        first_node_rank = nodes_min.keys()[0] # tomo el primer rank (por tomar alguno)
+
+        # busco el archivo en el nodo que lo tiene
+        data = self.__comm.send(file_hash, dest=first_node_rank, tag=TAG_NODE_LOOKUP_REQ)
+
+    	########################
+
         # Devuelvo el archivo.
         self.__comm.send(data, dest=source, tag=TAG_CONSOLE_LOOKUP_RESP)
 
@@ -441,8 +506,8 @@ class Console(object):
         """
         print(">>> Saliendo...")
         for i in range(MPI.COMM_WORLD.Get_size()):
-                data = None
-				self.__comm.isend(data, dest=i, tag=TAG_CONSOLE_EXIT_REQ)
+            data = None
+            self.__comm.isend(data, dest=i, tag=TAG_CONSOLE_EXIT_REQ)
 
         self.__finished = True
 
