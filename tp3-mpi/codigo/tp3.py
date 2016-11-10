@@ -135,7 +135,7 @@ class Node(object):
         
         # los iniciales
         for node in queue:
-            processed.append(node)
+            processed.add(node)
 
         # los siguientes
        	for node in queue:
@@ -152,7 +152,7 @@ class Node(object):
             # hay que volver a encolar en queue a node_list (siempre que no hayan sido visitados previamente)
             for node2 in node_list:
                 if not node2 in processed:
-                    processed.append(node2) # lo marco como visitado
+                    processed.add(node2) # lo marco como visitado
                     queue.append(node2) # lo encolo
 
 
@@ -170,24 +170,28 @@ class Node(object):
         processed = set()
         distancia_minima = 1000 # no puede tener mas distancia que 1000
 
+        thing_hash = self.__hash
+
         ###### esto es nuestro:
         
         # los iniciales
         for node in queue:
-            processed.append(node)
+            processed.add(node)
 
         # los siguientes
         for node in queue:
             if (distance(node[0], thing_hash) < distancia_minima):
                 nodes_min = set() # lo creo de vuelta
-                nodes_min.append(node)
+                nodes_min.add(node)
             elif (distance(node[0], thing_hash) == distancia_minima):
-                nodes_min.append(node) # lo appendeo al existente
+                nodes_min.add(node) # lo addeo al existente
 
-            self.__comm.send(thing_hash, dest=node[1], tag=TAG_NODE_FIND_NODES_JOIN_REQ)
+            self.__comm.send((thing_hash, self.__rank), dest=node[1], tag=TAG_NODE_FIND_NODES_JOIN_REQ)
             # wait....
             # devuelve una lista de tuplas de hashes y ranks de nodos
+            print "espero recv"
             (node_list, files) = self.__comm.recv(source=node[1], tag=TAG_NODE_FIND_NODES_JOIN_RESP)
+            print "termine recv"
 
             # hay que copiar los files al nodo actual
             for file_hash, file_name in files.items():
@@ -196,7 +200,7 @@ class Node(object):
             # hay que volver a encolar en queue a node_list (siempre que no hayan sido visitados previamente)
             for node2 in node_list:
                 if not node2 in processed:
-                    processed.append(node2) # lo marco como visitado
+                    processed.add(node2) # lo marco como visitado
                     queue.append(node2) # lo encolo
 
 
@@ -226,6 +230,8 @@ class Node(object):
         # El find_nodes que se usa acá debe propagar la info de que este
         # es un nuevo nodo.
 
+        #print "\n \n console join " + str(contact_node_rank) + "\n \n"
+
         print("[D] [{:02d}] [CONSOLE|JOIN] Uniendo el nodo actual al nodo '{}'".format(self.__rank, contact_node_rank))
 
         # Si yo soy el contacto inicial, inicio por default
@@ -248,6 +254,7 @@ class Node(object):
             # Propago consulta de find nodes a traves de los minimos de mi nodo
             # de contacto inicial.
             nodes_min = self.__find_nodes_join(data)
+            print ">>>>>> termino el find nodes join"
 
             # Convierto set a dict.
             nodes_min = {node_hash: node_rank for node_hash, node_rank in nodes_min}
@@ -305,6 +312,10 @@ class Node(object):
         # Obtengo minimos locales.
         nodes_min_local = self.__get_local_mins(file_hash)
 
+        print "\n nodes min local es:"
+        print nodes_min_local
+        print " "
+
         # Propago consulta de find nodes a traves de mis minimos locales.
         nodes_min = self.__find_nodes(nodes_min_local, file_hash)
 
@@ -312,12 +323,24 @@ class Node(object):
         # Esto es nuestro:
         
         # first_node_rank = nodes_min.keys()[0] # tomo el primer rank (por tomar alguno)
-        first_node_rank = nodes_min[0] # tomo el primer rank (por tomar alguno). Creemos que esto devuelve la primera key en python
+        first_node_rank = nodes_min.keys()[0] # tomo el primer rank (por tomar alguno). Creemos que esto devuelve la primera key en python
+        print "\n el rank es:"  
+        print first_node_rank
+        print ""
+
+        print "\n el hash es:"
+        print file_hash
+        print ""
 
         # busco el archivo en el nodo que lo tiene
         data = self.__comm.send(file_hash, dest=first_node_rank, tag=TAG_NODE_LOOKUP_REQ)
 
-    	########################
+
+        print "\n encontro el archivo migo!!! esta aca:"
+        print data
+        print " "
+
+        ########################
 
         # Devuelvo el archivo.
         self.__comm.send(data, dest=source, tag=TAG_CONSOLE_LOOKUP_RESP)
@@ -331,7 +354,7 @@ class Node(object):
         # Se incorporo un nuevo nodo a la red. Este mensaje pregunta por
         # los nodos más cercanos y, en caso que corresponda, indica que
         # se debe agregar el nuevo nodo a su tabla de routing.
-
+        #print "\n \n node join " + str(data) + "\n \n"
         node_hash, node_rank = data
 
         print("[D] [{:02d}] [NODE|JOIN] Uniendo el nodo actual al nodo '{}' con hash '{}'".format(self.__rank, node_rank, node_hash))
@@ -400,7 +423,9 @@ class Node(object):
         status = MPI.Status()
 
         while not self.__finished:
+            print "[D] [{:02d}] esperando mensaje".format(self.__rank)
             data = self.__comm.recv(source=MPI.ANY_SOURCE, tag=MPI.ANY_TAG, status=status)
+            print "[D] [{:02d}] recibi mensaje".format(self.__rank)
             tag = status.Get_tag()
             source = status.Get_source()
 
@@ -420,6 +445,7 @@ class Node(object):
                 self.__handle_console_store(data)
                 continue
             elif tag == TAG_CONSOLE_LOOKUP_REQ:
+                print "interpretando req"
                 self.__handle_console_look_up(source, data)
                 continue
             elif tag == TAG_CONSOLE_EXIT_REQ:
@@ -457,7 +483,9 @@ class Console(object):
         while not self.__finished:
             command, args = self.__parse_command(raw_input("> "))
 
-            if command == "quit":
+            if command == "enter":
+                print "\n"
+            elif command == "quit":
                 self.__handle_quit(*args)
             elif command == "join":
                 self.__handle_join(*args)
@@ -473,8 +501,10 @@ class Console(object):
 
     def __parse_command(self, command_string):
         tokens = [token.strip().lower() for token in command_string.split(" ") if token]
-
-        if tokens[0] in ["q", "quit"]:
+        if not tokens:
+            command = "enter"
+            args = []
+        elif tokens[0] in ["q", "quit"]:
             command = "quit"
             args = []
         elif tokens[0] in ["j", "join"]:
@@ -530,9 +560,14 @@ class Console(object):
 
         # Enviar pedido de LOOK-UP.
         data = hash_fn(file_name)
-        self.__comm.send(data, dest=node_rank, tag=TAG_CONSOLE_LOOKUP_REQ)
+        print "el hash es"
+        print data
+        print " "
 
+        self.__comm.send(data, dest=node_rank, tag=TAG_CONSOLE_LOOKUP_REQ)
+        
         # Recibir pedido de LOOK-UP.
+        print "esperando la respuesta"
         data = self.__comm.recv(source=node_rank, tag=TAG_CONSOLE_LOOKUP_RESP)
 
         if data == file_name:
