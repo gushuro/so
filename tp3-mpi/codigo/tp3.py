@@ -190,9 +190,9 @@ class Node(object):
             self.__comm.send((thing_hash, self.__rank), dest=node[1], tag=TAG_NODE_FIND_NODES_JOIN_REQ)
             # wait....
             # devuelve una lista de tuplas de hashes y ranks de nodos
-            print "espero recv"
+            print("espero recv")
             (node_list, files) = self.__comm.recv(source=node[1], tag=TAG_NODE_FIND_NODES_JOIN_RESP)
-            print "termine recv"
+            print("termine recv")
 
             # hay que copiar los files al nodo actual
             for file_hash, file_name in files.items():
