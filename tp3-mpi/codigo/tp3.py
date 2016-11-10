@@ -173,7 +173,7 @@ class Node(object):
         thing_hash = self.__hash
 
         ###### esto es nuestro:
-        
+        processed.add((self.__hash, self.__rank))
         # los iniciales
         for node in queue:
             processed.add(node)
