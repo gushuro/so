@@ -129,10 +129,12 @@ class Node(object):
         queue = contact_nodes
         processed = set()
         nodes_min = {} # Retorno: Un diccionario que va de rank a hash
-        distancia_minima = 1000 # no puede tener mas distancia que 1000
+        distancia_minima = distance(self.__hash, thing_hash) # el minimo por default es el actual
+        nodes_min[self.__rank] = self.__hash
 
        	###### esto es nuestro:
-        
+        processed.add((self.__hash, self.__rank))
+
         # los iniciales
         for node in queue:
             processed.add(node)
@@ -160,7 +162,6 @@ class Node(object):
 	        # joineamos lo hacemos por parentezco entre los hashes de los nodos
        	#######
 		
-
         return nodes_min
 
     # casi igual a find_node pero agrega los archivos necesarios al hacer join. Pueden hacerlo en un solo método
@@ -254,7 +255,6 @@ class Node(object):
             # Propago consulta de find nodes a traves de los minimos de mi nodo
             # de contacto inicial.
             nodes_min = self.__find_nodes_join(data)
-            print ">>>>>> termino el find nodes join"
 
             # Convierto set a dict.
             nodes_min = {node_hash: node_rank for node_hash, node_rank in nodes_min}
@@ -295,7 +295,6 @@ class Node(object):
         # Tengo que enviar el archivo a los nodos más cercanos
 
         ######################## Esto es nuestro:
-
         # ya tengo los nodos mas cercanos en nodes_min, tengo que guardar el archivo en todos ellos
         for node in nodes_min:
             self.__comm.send(data, dest=node, tag=TAG_NODE_STORE_REQ) # hago store en ese nodo. Por ahora asumimos que no devuelve nada
@@ -311,6 +310,11 @@ class Node(object):
 
         # Obtengo minimos locales.
         nodes_min_local = self.__get_local_mins(file_hash)
+        
+        if file_hash in self.__files.keys():
+            print("Lo tengo yo!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+            self.__comm.send(self.__files[file_hash], dest=source, tag=TAG_CONSOLE_LOOKUP_RESP)
+            return
 
         print "\n nodes min local es:"
         print nodes_min_local
@@ -324,16 +328,11 @@ class Node(object):
         
         # first_node_rank = nodes_min.keys()[0] # tomo el primer rank (por tomar alguno)
         first_node_rank = nodes_min.keys()[0] # tomo el primer rank (por tomar alguno). Creemos que esto devuelve la primera key en python
-        print "\n el rank es:"  
-        print first_node_rank
-        print ""
-
-        print "\n el hash es:"
-        print file_hash
-        print ""
-
+        
         # busco el archivo en el nodo que lo tiene
-        data = self.__comm.send(file_hash, dest=first_node_rank, tag=TAG_NODE_LOOKUP_REQ)
+        self.__comm.send(file_hash, dest=first_node_rank, tag=TAG_NODE_LOOKUP_REQ)
+
+        data = self.__comm.recv(source=first_node_rank, tag=TAG_NODE_LOOKUP_RESP)
 
 
         print "\n encontro el archivo migo!!! esta aca:"
@@ -445,7 +444,6 @@ class Node(object):
                 self.__handle_console_store(data)
                 continue
             elif tag == TAG_CONSOLE_LOOKUP_REQ:
-                print "interpretando req"
                 self.__handle_console_look_up(source, data)
                 continue
             elif tag == TAG_CONSOLE_EXIT_REQ:
@@ -560,14 +558,11 @@ class Console(object):
 
         # Enviar pedido de LOOK-UP.
         data = hash_fn(file_name)
-        print "el hash es"
-        print data
-        print " "
+
 
         self.__comm.send(data, dest=node_rank, tag=TAG_CONSOLE_LOOKUP_REQ)
         
         # Recibir pedido de LOOK-UP.
-        print "esperando la respuesta"
         data = self.__comm.recv(source=node_rank, tag=TAG_CONSOLE_LOOKUP_RESP)
 
         if data == file_name:
