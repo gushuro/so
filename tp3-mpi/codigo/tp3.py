@@ -135,8 +135,8 @@ class Node(object):
         visitados = set() # voy guardando cuales ya visite
         nodes_min = {} # Retorno: Un diccionario que va de rank a hash
 
-        distancia_minima = 10000000000000000000 # el minimo por default es el actual
-        # nodes_min[self.__rank] = self.__hash
+        distancia_minima = distance(self.__hash, thing_hash) # el minimo por default es el actual
+        nodes_min[self.__rank] = self.__hash
 
         visitados.add((self.__hash, self.__rank))
 
@@ -203,8 +203,8 @@ class Node(object):
                 print >> sys.stderr, "[D] [{:02d}] Ya me llego el recv".format(self.__rank)     
 
                 # hay que copiar los files al nodo actual
-                # for file_hash, file_name in files.items():
-                #    self.__files[file_hash] = file_name
+                for file_hash, file_name in files.items():
+                    self.__files[file_hash] = file_name
 
                 # hay que volver a encolar en queue a node_list (siempre que no hayan sido visitados previamente)
                 for node2 in node_list:
