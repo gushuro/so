@@ -135,8 +135,8 @@ class Node(object):
         visitados = set() # voy guardando cuales ya visite
         nodes_min = {} # Retorno: Un diccionario que va de rank a hash
 
-        distancia_minima = distance(self.__hash, thing_hash) # el minimo por default es el actual
-        nodes_min[self.__rank] = self.__hash
+        distancia_minima = 10000000000000000000 # el minimo por default es el actual
+        # nodes_min[self.__rank] = self.__hash
 
         visitados.add((self.__hash, self.__rank))
 
