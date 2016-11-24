@@ -136,18 +136,17 @@ class Node(object):
     def __find_nodes(self, contact_nodes, thing_hash):
         print >> sys.stderr, "[D] [{:02d}] Arranco find nodes".format(self.__rank)
         queue = contact_nodes
-        processed = set()
+        visitados = set() # voy guardando cuales ya visite
         nodes_min = {} # Retorno: Un diccionario que va de rank a hash
+
         distancia_minima = distance(self.__hash, thing_hash) # el minimo por default es el actual
-        #distancia_minima = 1000000000000  # es mucho mas grande que la distancia maxima
         nodes_min[self.__rank] = self.__hash
 
-        ###### esto es nuestro:
-        processed.add((self.__hash, self.__rank))
+        visitados.add((self.__hash, self.__rank))
 
         # los iniciales
         for node in queue:
-            processed.add(node)
+            visitados.add(node)
 
         # los siguientes
         for node in queue:
@@ -167,16 +166,15 @@ class Node(object):
 
                 # hay que volver a encolar en queue a node_list (siempre que no hayan sido visitados previamente)
                 for node2 in node_list:
-                    if not node2 in processed:
-                        processed.add(node2) # lo marco como visitado
+                    if not node2 in visitados:
+                        visitados.add(node2) # lo marco como visitado
                         queue.append(node2) # lo encolo
 
 
             # no hace falta recorrer mas que los que vamos recibiendo, porque cuando
             # joineamos lo hacemos por parentezco entre los hashes de los nodos
-        #######
 
-        print >> sys.stderr, "[D] [{:02d}] Termine find nodes! Vivan las funciones computables!".format(self.__rank)
+        print >> sys.stderr, "[D] [{:02d}] Termine find nodes!".format(self.__rank)
         return nodes_min
 
     # casi igual a find_node pero cada nodo va borrando los archivos que ya estarían más cercano al find nodes
@@ -186,15 +184,13 @@ class Node(object):
         print >> sys.stderr, "[D] [{:02d}] Arranco find nodes join".format(self.__rank)
         nodes_min = set() # Retorno: Un set de tuplas node_hash, node_rank
         queue = contact_nodes
-        processed = set()
-
+        visitados = set() # voy guardando cuales ya visite
         thing_hash = self.__hash
 
-        ###### esto es nuestro:
-        processed.add((self.__hash, self.__rank))
+        visitados.add((self.__hash, self.__rank))
         # los iniciales
         for node in queue:
-            processed.add(node)
+            visitados.add(node)
 
         # los siguientes
         for node in queue:
@@ -204,11 +200,11 @@ class Node(object):
                 print >> sys.stderr, "[D] [{:02d}] No me tengo que mandar un mensaje a mi mismo!".format(self.__rank)
             else:
                 self.__comm.send((thing_hash, self.__rank), dest=node[1], tag=TAG_NODE_FIND_NODES_JOIN_REQ)
-                # wait....
+
                 # devuelve una lista de tuplas de hashes y ranks de nodos
-                print >> sys.stderr, "espero recv"
+                print >> sys.stderr, "[D] [{:02d}] Espero rcv".format(self.__rank)
                 (node_list, files) = self.__comm.recv(source=node[1], tag=TAG_NODE_FIND_NODES_JOIN_RESP)
-                print >> sys.stderr, "termine recv"                
+                print >> sys.stderr, "[D] [{:02d}] Ya me llego el recv".format(self.__rank)     
 
                 # hay que copiar los files al nodo actual
                 for file_hash, file_name in files.items():
@@ -216,8 +212,8 @@ class Node(object):
 
                 # hay que volver a encolar en queue a node_list (siempre que no hayan sido visitados previamente)
                 for node2 in node_list:
-                    if not node2 in processed:
-                        processed.add(node2) # lo marco como visitado
+                    if not node2 in visitados:
+                        visitados.add(node2) # lo marco como visitado
                         queue.append(node2) # lo encolo
 
 
@@ -225,7 +221,7 @@ class Node(object):
             # joineamos lo hacemos por parentezco entre los hashes de los nodos
         #######
 
-        print >> sys.stderr, "[D] [{:02d}] Termine find nodes join! Vivan las funciones computables!".format(self.__rank)
+        print >> sys.stderr, "[D] [{:02d}] Termine find nodes join".format(self.__rank)
         return nodes_min
 
     def __print_routing_table(self):
@@ -323,13 +319,9 @@ class Node(object):
         nodes_min = self.__find_nodes(nodes_min_local, file_hash)
         #Tengo que enviar el archivo a los nodos más cercanos
 
-        ######################## Esto es nuestro:
         # ya tengo los nodos mas cercanos en nodes_min, tengo que guardar el archivo en todos ellos
         for node in nodes_min:
-            self.__comm.send(data, dest=node, tag=TAG_NODE_STORE_REQ) # hago store en ese nodo. Por ahora asumimos que no devuelve nada
-
-        ########################
-
+            self.__comm.send(data, dest=node, tag=TAG_NODE_STORE_REQ) # hago store en ese nodo.
             # Envio el archivo a los nodos más cercanos
 
     # Busca el archivo entre los más cercanos, a partir del nodo fuente. Les va consultando a cada uno los más cercanos
@@ -358,10 +350,6 @@ class Node(object):
             # Propago consulta de find nodes a traves de mis minimos locales.
             nodes_min = self.__find_nodes(nodes_min_local, file_hash)
 
-            ########################
-            # Esto es nuestro:
-
-
             # busco el archivo en el nodo que lo tiene
             for elem in nodes_min.keys():
                 if (self.__rank == elem):
@@ -371,15 +359,14 @@ class Node(object):
                     data = self.__comm.recv(source=elem, tag=TAG_NODE_LOOKUP_RESP)
 
 
-            print >> sys.stderr, "\n encontro el archivo migo!!! esta aca:"
+            print >> sys.stderr, "[D] [{:02d}] Encontre el archivo, es:".format(self.__rank)
             print >> sys.stderr, data
             print >> sys.stderr, " "
 
-            ########################
 
             # Devuelvo el archivo.
             if (source == self.__rank):
-                print >> sys.stderr, "[D] [{:02d}] Aca hay algo raro...... . . .".format(self.__rank)
+                print >> sys.stderr, "[D] [{:02d}] Error!".format(self.__rank)
             else:
                 self.__comm.send(data, dest=source, tag=TAG_CONSOLE_LOOKUP_RESP)
 

@@ -133,17 +133,17 @@ class Node(object):
        # Le pregunta a los nodos mínimos por el hash 
     def __find_nodes(self, contact_nodes, thing_hash):
         queue = contact_nodes
-        processed = set()
+        visitados = set() # voy guardando cuales ya visite
         nodes_min = {} # Retorno: Un diccionario que va de rank a hash
         distancia_minima = distance(self.__hash, thing_hash) # el minimo por default es el actual
         nodes_min[self.__rank] = self.__hash
 
         ###### esto es nuestro:
-        processed.add((self.__hash, self.__rank))
+        visitados.add((self.__hash, self.__rank))
 
         # los iniciales
         for node in queue:
-            processed.add(node)
+            visitados.add(node)
 
         # los siguientes
         while queue:
@@ -163,22 +163,20 @@ class Node(object):
 
                     cantidad_sent += 1
                     queue.pop(0)
-                print "la cantidad enviada es ", cantidad_sent
-            # wait....
-            # devuelve una lista de tuplas de hashes y ranks de nodos
-            print("espero recv")
+                print "[D] [{:02d}] La cantidad enviada es {:02d}".format(self.__rank, cantidad_sent)
+            print "[D] [{:02d}] Espero los recv".format(self.__rank)
             status = MPI.Status()
             for _ in range(cantidad_sent):
                 node_list = self.__comm.recv(source=MPI.ANY_SOURCE, tag=TAG_NODE_FIND_NODES_RESP, status=status)
                 source = status.Get_source()
-                print "Recibi! El source es: ", source, " y el dest es: ", self.__rank
+                print "[D] [{:02d}] Recibi! El source es: {:02d} y el dest es: {:02d}".format(self.__rank, source, self.__rank)
                 # hay que volver a encolar en queue a node_list (siempre que no hayan sido visitados previamente)
                 for node2 in node_list:
-                    if not node2 in processed:
-                        processed.add(node2) # lo marco como visitado
+                    if not node2 in visitados:
+                        visitados.add(node2) # lo marco como visitado
                         queue.append(node2) # lo encolo
             
-            print("termine recv")
+            print("[D] [{:02d}] Me llegaron todos los recv").format(self.__rank)
             # no hace falta recorrer mas que los que vamos recibiendo, porque cuando 
             # joineamos lo hacemos por parentezco entre los hashes de los nodos
         #######
@@ -189,14 +187,13 @@ class Node(object):
     def __find_nodes_join(self, contact_nodes):
         nodes_min = set() # Retorno: Un set de tuplas node_hash, node_rank 
         queue = contact_nodes
-        processed = set()
-        cantidad_sent = 0
+        visitados = set() # voy guardando cuales ya visite
+        cantidad_sent = 0 # guarda la cantidad de mensajes enviados en cada iteracion
 
-        ###### esto es nuestro:
-        processed.add((self.__hash, self.__rank))
+        visitados.add((self.__hash, self.__rank))
         # los iniciales
         for node in queue:
-            processed.add(node)
+            visitados.add(node)
 
         # los siguientes
         while queue:
@@ -215,30 +212,30 @@ class Node(object):
                         cantidad_sent += 1
                     queue.pop(0)
             print "la cantidad enviada es ", cantidad_sent
-            # wait....
-            # devuelve una lista de tuplas de hashes y ranks de nodos
-            print("espero recv")
+
+            # RCVS
+            print "[D] [{:02d}] Espero los recv".format(self.__rank)
             status = MPI.Status()
             for _ in range(cantidad_sent):
                 (node_list, files) = self.__comm.recv(source=MPI.ANY_SOURCE, tag=TAG_NODE_FIND_NODES_JOIN_RESP, status=status)
-                print "me dieron esta node_list ", node_list
+
                 source = status.Get_source()
                 # hay que copiar los files al nodo actual
-                print "Recibi! El source es: ", source, " y el dest es: ", self.__rank
+                print "[D] [{:02d}] Recibi! El source es: {:02d} y el dest es: {:02d}".format(self.__rank, source, self.__rank)
                 for file_hash, file_name in files.items():
                     self.__files[file_hash] = file_name
                 # hay que volver a encolar en queue a node_list (siempre que no hayan sido visitados previamente)
                 for node2 in node_list:
-                    if not node2 in processed:
-                        processed.add(node2) # lo marco como visitado
+                    if not node2 in visitados:
+                        visitados.add(node2) # lo marco como visitado
                         queue.append(node2) # lo encolo
             
-            print("termine recv")
+            print("[D] [{:02d}] Me llegaron todos los recv").format(self.__rank)
             # no hace falta recorrer mas que los que vamos recibiendo, porque cuando 
             # joineamos lo hacemos por parentezco entre los hashes de los nodos
-        #######        
-        processed.remove((self.__hash, self.__rank))
-        return processed
+
+        visitados.remove((self.__hash, self.__rank))
+        return visitados
 
     def __print_routing_table(self):
         print("[D] Routing table nodo : {:02d} :: {}".format(self.__rank, self.__routing_table))
@@ -335,14 +332,9 @@ class Node(object):
         nodes_min = self.__find_nodes(nodes_min_local, file_hash)
         #Tengo que enviar el archivo a los nodos más cercanos
 
-        ######################## Esto es nuestro:
         # ya tengo los nodos mas cercanos en nodes_min, tengo que guardar el archivo en todos ellos
         for node in nodes_min:
-            self.__comm.send(data, dest=node, tag=TAG_NODE_STORE_REQ) # hago store en ese nodo. Por ahora asumimos que no devuelve nada
-
-        ########################
-
-            # Envio el archivo a los nodos más cercanos
+            self.__comm.send(data, dest=node, tag=TAG_NODE_STORE_REQ) # hago store en ese nodo
 
     # Busca el archivo entre los más cercanos, a partir del nodo fuente. Les va consultando a cada uno los más cercanos
     # con __finde_nodes
@@ -370,10 +362,6 @@ class Node(object):
             # Propago consulta de find nodes a traves de mis minimos locales.
             nodes_min = self.__find_nodes(nodes_min_local, file_hash)
 
-            ########################
-            # Esto es nuestro:
-
-
             # busco el archivo en el nodo que lo tiene
             for elem in nodes_min.keys():
                 if (self.__rank == elem):
@@ -382,22 +370,17 @@ class Node(object):
                     self.__comm.send(file_hash, dest=elem, tag=TAG_NODE_LOOKUP_REQ)
                     data = self.__comm.recv(source=elem, tag=TAG_NODE_LOOKUP_RESP)
 
-
-            print >> sys.stderr, "\n encontro el archivo migo!!! esta aca:"
+            print >> sys.stderr, "[D] [{:02d}] Encontre el archivo, es:".format(self.__rank)
             print >> sys.stderr, data
             print >> sys.stderr, " "
 
-            ########################
-
             # Devuelvo el archivo.
             if (source == self.__rank):
-                print >> sys.stderr, "[D] [{:02d}] Aca hay algo raro...... . . .".format(self.__rank)
+                print >> sys.stderr, "[D] [{:02d}] Error!".format(self.__rank)
             else:
                 self.__comm.send(data, dest=source, tag=TAG_CONSOLE_LOOKUP_RESP)
 
     def __handle_console_finish(self, data):
-        #print("[D] [{:02d}] [NODE|JOIN] Tabla de ruteo: {}".format(self.__rank, self.__routing_table))
-
         self.__finished = True
 
     # Handlers del protocolo NODE.
