@@ -84,7 +84,7 @@ class Node(object):
         return self.__get_mins(nodes, thing_hash)[0]
 
     def __get_mins(self, nodes, thing_hash):
-        print >> sys.stderr, "soy el nodo", self.__rank, "y estoy haciendo get mins"
+        #print >> sys.stderr, "soy el nodo", self.__rank, "y estoy haciendo get mins"
 
         # Calculo mínimo.
         dist_min = sys.maxint
@@ -98,7 +98,7 @@ class Node(object):
 
     def __get_local_mins(self, thing_hash):
         asd = self.__get_mins(self.__routing_table, thing_hash)
-        print >> sys.stderr, "soy el nodo", self.__rank, "y ya termine get mins"
+        #print >> sys.stderr, "soy el nodo", self.__rank, "y ya termine get mins"
         return asd
 
     def __get_maxs(self, nodes, thing_hash):
@@ -130,7 +130,7 @@ class Node(object):
                 del self.__routing_table[node_max_hash]
                 self.__routing_table[node_hash] = node_rank
 
-       # Le pregunta a los nodos mínimos por el hash 
+       # Le pregunta a los nodos mínimos por el hash
     def __find_nodes(self, contact_nodes, thing_hash):
         queue = contact_nodes
         visitados = set() # voy guardando cuales ya visite
@@ -175,17 +175,17 @@ class Node(object):
                     if not node2 in visitados:
                         visitados.add(node2) # lo marco como visitado
                         queue.append(node2) # lo encolo
-            
+
             print("[D] [{:02d}] Me llegaron todos los recv").format(self.__rank)
-            # no hace falta recorrer mas que los que vamos recibiendo, porque cuando 
+            # no hace falta recorrer mas que los que vamos recibiendo, porque cuando
             # joineamos lo hacemos por parentezco entre los hashes de los nodos
         #######
-        
+
         return nodes_min
 
     # casi igual a find_node pero agrega los archivos necesarios al hacer join. Pueden hacerlo en un solo método
     def __find_nodes_join(self, contact_nodes):
-        nodes_min = set() # Retorno: Un set de tuplas node_hash, node_rank 
+        #nodes_min = set() # Retorno: Un set de tuplas node_hash, node_rank
         queue = contact_nodes
         visitados = set() # voy guardando cuales ya visite
         cantidad_sent = 0 # guarda la cantidad de mensajes enviados en cada iteracion
@@ -207,7 +207,7 @@ class Node(object):
                     else:
                         self.__comm.isend((self.__hash, self.__rank), dest=node[1], tag=TAG_NODE_FIND_NODES_JOIN_REQ)
 
-                        nodes_min.add(node)
+                        #nodes_min.add(node)
 
                         cantidad_sent += 1
                     queue.pop(0)
@@ -229,9 +229,9 @@ class Node(object):
                     if not node2 in visitados:
                         visitados.add(node2) # lo marco como visitado
                         queue.append(node2) # lo encolo
-            
+
             print("[D] [{:02d}] Me llegaron todos los recv").format(self.__rank)
-            # no hace falta recorrer mas que los que vamos recibiendo, porque cuando 
+            # no hace falta recorrer mas que los que vamos recibiendo, porque cuando
             # joineamos lo hacemos por parentezco entre los hashes de los nodos
 
         visitados.remove((self.__hash, self.__rank))
