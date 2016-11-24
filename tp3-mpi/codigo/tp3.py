@@ -84,8 +84,6 @@ class Node(object):
         return self.__get_mins(nodes, thing_hash)[0]
 
     def __get_mins(self, nodes, thing_hash):
-        print >> sys.stderr, "soy el nodo", self.__rank, "y estoy haciendo get mins"
-
         # Calculo mínimo.
         dist_min = sys.maxint
         for node_hash in nodes:
@@ -97,9 +95,7 @@ class Node(object):
                     if distance(node_hash, thing_hash) == dist_min]
 
     def __get_local_mins(self, thing_hash):
-        asd = self.__get_mins(self.__routing_table, thing_hash)
-        print >> sys.stderr, "soy el nodo", self.__rank, "y ya termine get mins"
-        return asd
+        return self.__get_mins(self.__routing_table, thing_hash)
 
     def __get_maxs(self, nodes, thing_hash):
         # nodes = dict(node_hash: node_rank)
@@ -207,8 +203,8 @@ class Node(object):
                 print >> sys.stderr, "[D] [{:02d}] Ya me llego el recv".format(self.__rank)     
 
                 # hay que copiar los files al nodo actual
-                for file_hash, file_name in files.items():
-                    self.__files[file_hash] = file_name
+                # for file_hash, file_name in files.items():
+                #    self.__files[file_hash] = file_name
 
                 # hay que volver a encolar en queue a node_list (siempre que no hayan sido visitados previamente)
                 for node2 in node_list:
@@ -371,8 +367,6 @@ class Node(object):
                 self.__comm.send(data, dest=source, tag=TAG_CONSOLE_LOOKUP_RESP)
 
     def __handle_console_finish(self, data):
-        #print("[D] [{:02d}] [NODE|JOIN] Tabla de ruteo: {}".format(self.__rank, self.__routing_table))
-
         self.__finished = True
 
     # Handlers del protocolo NODE.

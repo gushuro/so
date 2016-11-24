@@ -254,7 +254,6 @@ class Node(object):
         # El find_nodes que se usa acá debe propagar la info de que este
         # es un nuevo nodo.
 
-        #print "\n \n console join " + str(contact_node_rank) + "\n \n"
 
         print("[D] [{:02d}] [CONSOLE|JOIN] Uniendo el nodo actual al nodo '{}'".format(self.__rank, contact_node_rank))
 
@@ -376,7 +375,6 @@ class Node(object):
         # Se incorporo un nuevo nodo a la red. Este mensaje pregunta por
         # los nodos más cercanos y, en caso que corresponda, indica que
         # se debe agregar el nuevo nodo a su tabla de routing.
-        #print "\n \n node join " + str(data) + "\n \n"
         node_hash, node_rank = data
 
         print("[D] [{:02d}] [NODE|JOIN] Uniendo el nodo actual al nodo '{}' con hash '{}'".format(self.__rank, node_rank, node_hash))
