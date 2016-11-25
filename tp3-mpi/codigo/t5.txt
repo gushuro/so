@@ -1,0 +1,38 @@
+j 1
+j 2
+j 3
+j 4
+j 5
+j 6
+s 2 a1
+s 2 a2
+s 2 a3
+s 2 a4
+s 2 a5
+s 2 a6
+s 2 a7
+s 3 b1
+s 3 b2
+s 3 b3
+s 3 b4
+s 3 b5
+s 3 b6
+s 3 b7
+j 7
+l 2 a1
+l 2 a2
+l 2 a3
+l 2 a4
+l 2 a5
+l 2 a6
+l 2 a7
+l 3 b5
+l 3 b6
+l 3 b7
+j 8
+l 3 b1
+l 3 b2
+l 3 b3
+l 3 b4
+j 9
+q

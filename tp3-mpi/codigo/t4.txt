@@ -1,11 +1,13 @@
 j 1
 j 2
 j 3
+s 2 chau
+l 2 chau
 j 4
+s 4 hola
 j 5
 j 6
 j 7
 j 8
-s 2 chau
-l 3 chau
+l 4 hola
 q
