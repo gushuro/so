@@ -153,7 +153,7 @@ class Node(object):
                 if (node[1] == self.__rank):
                     print >> sys.stderr, "[D] [{:02d}] No me tengo que mandar un mensaje a mi mismo!".format(self.__rank)
                 else:
-                    self.__comm.Isend(thing_hash, dest=node[1], tag=TAG_NODE_FIND_NODES_REQ)
+                    self.__comm.isend(thing_hash, dest=node[1], tag=TAG_NODE_FIND_NODES_REQ)
 
                     if (distance(node[0], thing_hash) < distancia_minima):
                         nodes_min = {node[1]: node[0]}
